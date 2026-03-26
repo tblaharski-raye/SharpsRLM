@@ -1010,7 +1010,7 @@ function saveWatchlist() {
 
 // Close modal on backdrop click
 document.getElementById('pickerModal').addEventListener('click', e=>{ if(e.target===document.getElementById('pickerModal')) closePicker(); });
-document.getElementById('apiKey').addEventListener('keydown', e=>{ if(e.key==='Enter') manualScan(); });
+document.getElementById('apiKey').addEventListener('keydown', e=>{ if(e.key==='Enter') loadGames(); });
 
 // ─── LOCAL STORAGE PERSISTENCE ───────────────────────────────────────────────
 const STORAGE_KEY = 'rlmdetector_settings';
