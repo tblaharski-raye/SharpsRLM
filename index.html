@@ -351,6 +351,22 @@ function nowStr() { return new Date().toLocaleTimeString([],{hour:'2-digit',minu
 function gameId(g) { return g.homeTeam + '||' + g.awayTeam + '||' + g.commenceTime; }
 function gameIdRaw(g) { return g.home_team + '||' + g.away_team + '||' + g.commence_time; }
 function setStatus(msg, cls) { var el = document.getElementById('status'); el.textContent = msg; el.className = cls || ''; }
+
+// Fuzzy team name matching between ESPN and Odds API
+// ESPN: "Los Angeles Lakers", Odds API: "Los Angeles Lakers" (usually same but not always)
+function teamsMatch(a, b) {
+  if (!a || !b) return false;
+  a = a.toLowerCase().trim();
+  b = b.toLowerCase().trim();
+  if (a === b) return true;
+  // Try last word match (city names differ sometimes)
+  var aLast = a.split(' ').pop();
+  var bLast = b.split(' ').pop();
+  if (aLast === bLast && aLast.length > 3) return true;
+  // Try contains
+  if (a.indexOf(bLast) !== -1 || b.indexOf(aLast) !== -1) return true;
+  return false;
+}
 function addLog(msg, cls) {
   document.getElementById('notifLogWrap').style.display = 'block';
   var log = document.getElementById('notifLog');
@@ -636,19 +652,51 @@ async function testPushover() {
   addLog(r.ok ? 'Pushover test ping sent.' : 'Pushover test failed: ' + r.reason, r.ok ? 'sent' : 'fail');
 }
 
-// ─── STEP 1: LOAD GAMES ──────────────────────────────────────────────────────
+// ─── ESPN SPORT CONFIG ────────────────────────────────────────────────────────────────────────
+var ESPN_SPORTS = {
+  'americanfootball_nfl':  {sport:'football',  league:'nfl'},
+  'basketball_nba':        {sport:'basketball', league:'nba'},
+  'baseball_mlb':          {sport:'baseball',   league:'mlb'},
+  'icehockey_nhl':         {sport:'hockey',     league:'nhl'},
+  'americanfootball_ncaaf':{sport:'football',   league:'college-football'},
+  'basketball_ncaab':      {sport:'basketball', league:'mens-college-basketball'}
+};
+
+async function fetchESPNGames(sportKey, dateStr) {
+  var d = dateStr.replace(/-/g, '');
+  var cfg = ESPN_SPORTS[sportKey];
+  if (!cfg) return [];
+  var extra = sportKey === 'basketball_ncaab' ? '&groups=50&limit=300' : '&limit=100';
+  var url = 'https://site.api.espn.com/apis/site/v2/sports/' + cfg.sport + '/' + cfg.league + '/scoreboard?dates=' + d + extra;
+  var data = await fetchWithRetry(url);
+  if (!data || !data.events) return [];
+  return data.events.map(function(ev) {
+    var comp = ev.competitions[0];
+    var home = comp.competitors.find(function(c){return c.homeAway==='home';}) || comp.competitors[0];
+    var away = comp.competitors.find(function(c){return c.homeAway==='away';}) || comp.competitors[1];
+    return {
+      id:            ev.id,
+      espn_id:       ev.id,
+      home_team:     home.team.displayName,
+      away_team:     away.team.displayName,
+      home_abbrev:   home.team.abbreviation,
+      away_abbrev:   away.team.abbreviation,
+      commence_time: ev.date,
+      sportKey:      sportKey
+    };
+  });
+}
+
+// ─── STEP 1: LOAD GAMES (ESPN — free, no key, no limits) ──────────────────────────────────
 async function loadGames() {
-  var apiKey = document.getElementById('apiKey').value.trim();
   var date   = document.getElementById('scanDate').value;
   var sports = [];
   document.querySelectorAll('.pill[data-sport].active').forEach(function(p) { sports.push(p.dataset.sport); });
-
-  if (!apiKey) { setStatus('Please enter your Odds API key.', 'error'); return; }
   if (!sports.length) { setStatus('Select at least one sport.', 'error'); return; }
 
   var btn = document.getElementById('loadBtn');
   btn.disabled = true; btn.textContent = 'Loading...';
-  setStatus('Fetching schedule (no credits used)...', 'loading');
+  setStatus('Fetching full schedule from ESPN (free, no API credits)...', 'loading');
 
   var allEvents = [];
   var sportEventMap = {};
@@ -657,9 +705,9 @@ async function loadGames() {
   for (var si = 0; si < sports.length; si++) {
     var sport = sports[si];
     try {
-      var events = await fetchEventsForSport(apiKey, sport, date);
+      var events = await fetchESPNGames(sport, date);
       sportEventMap[sport] = events;
-      events.forEach(function(ev) { allEvents.push(Object.assign({}, ev, {sportKey: sport})); });
+      events.forEach(function(ev) { allEvents.push(ev); });
     } catch(e) {
       loadErrors.push(sportLabel(sport) + ': ' + e.message);
       sportEventMap[sport] = [];
@@ -669,13 +717,12 @@ async function loadGames() {
   btn.disabled = false; btn.textContent = 'Load Games';
 
   if (loadErrors.length && !allEvents.length) {
-    setStatus('Error: ' + loadErrors[0], 'error');
+    setStatus('ESPN error: ' + loadErrors[0], 'error');
     return;
   }
 
   allFetchedGames = allEvents;
 
-  // Update pill visuals
   sports.forEach(function(sport) {
     var pill = document.querySelector('.pill[data-sport="' + sport + '"]');
     if (!pill) return;
@@ -691,16 +738,14 @@ async function loadGames() {
     return;
   }
 
-  // Unlock Step 2
   document.getElementById('pickBtn').disabled = false;
   document.getElementById('badge1').className = 'step-badge done-1';
 
   var activeSports = sports.filter(function(s) { return sportEventMap[s] && sportEventMap[s].length > 0; });
-  var breakdown = activeSports.map(function(s) { return sportLabel(s) + ': ' + sportEventMap[s].length; }).join(' \u00b7 ');
-  setStatus(allEvents.length + ' games loaded \u2014 ' + breakdown + '. Now select games to watch.', '');
-  addLog('Loaded ' + allEvents.length + ' games. ' + (loadErrors.length ? loadErrors.length + ' sport(s) had errors.' : ''));
+  var breakdown = activeSports.map(function(s) { return sportLabel(s) + ': ' + sportEventMap[s].length; }).join(' · ');
+  setStatus(allEvents.length + ' games loaded via ESPN — ' + breakdown + '. Select games to watch.', '');
+  addLog('ESPN loaded ' + allEvents.length + ' games.' + (loadErrors.length ? ' Errors: ' + loadErrors.join(', ') : ''));
 }
-
 // ─── STEP 3: SCAN ────────────────────────────────────────────────────────────
 async function runScan(isAuto) {
   if (isAuto === undefined) isAuto = false;
@@ -724,7 +769,7 @@ async function runScan(isAuto) {
     return;
   }
 
-  // Group by sport
+  // Group selected games by sport
   var bySport = {};
   watchlistEvents.forEach(function(ev) {
     if (!bySport[ev.sportKey]) bySport[ev.sportKey] = [];
@@ -734,19 +779,40 @@ async function runScan(isAuto) {
   var allOddsMap = {};
   var errs = [];
   var sportKeys = Object.keys(bySport);
+
   for (var si = 0; si < sportKeys.length; si++) {
     var sport = sportKeys[si];
     try {
-      setStatus((isAuto ? '[Auto] ' : '') + 'Fetching odds \u2014 ' + sportLabel(sport) + ' (' + bySport[sport].length + ' games)...', 'loading');
-      var oddsMap = await fetchOddsForEvents(apiKey, sport, bySport[sport]);
-      Object.assign(allOddsMap, oddsMap);
+      setStatus((isAuto ? '[Auto] ' : '') + 'Fetching odds — ' + sportLabel(sport) + '...', 'loading');
+
+      // Get Odds API event list for this sport (0 credits) then match by team name
+      var oddsEvents = await fetchEventsForSport(apiKey, sport, document.getElementById('scanDate').value);
+
+      var matchedOddsEvents = [];
+      bySport[sport].forEach(function(espnGame) {
+        var match = oddsEvents.find(function(oe) {
+          return teamsMatch(oe.home_team, espnGame.home_team) && teamsMatch(oe.away_team, espnGame.away_team);
+        });
+        if (match) {
+          matchedOddsEvents.push({oddsEvent: match, espnGame: espnGame});
+        }
+      });
+
+      if (matchedOddsEvents.length) {
+        var oddsEventsToFetch = matchedOddsEvents.map(function(m){return m.oddsEvent;});
+        var oddsMap = await fetchOddsForEvents(apiKey, sport, oddsEventsToFetch);
+        matchedOddsEvents.forEach(function(m) {
+          if (oddsMap[m.oddsEvent.id]) {
+            allOddsMap[m.espnGame.espn_id] = oddsMap[m.oddsEvent.id];
+          }
+        });
+      }
     } catch(e) { errs.push(sportLabel(sport) + ': ' + e.message); }
   }
+  var withOdds = watchlistEvents.filter(function(ev) { return allOddsMap[ev.espn_id]; });
+  var noOdds   = watchlistEvents.filter(function(ev) { return !allOddsMap[ev.espn_id]; });
 
-  var withOdds = watchlistEvents.filter(function(ev) { return allOddsMap[ev.id]; });
-  var noOdds   = watchlistEvents.filter(function(ev) { return !allOddsMap[ev.id]; });
-
-  var analyzed = withOdds.map(function(ev) { return analyzeRLM(allOddsMap[ev.id], ev.sportKey); }).filter(Boolean);
+  var analyzed = withOdds.map(function(ev) { return analyzeRLM(allOddsMap[ev.espn_id], ev.sportKey); }).filter(Boolean);
   analyzed.sort(function(a,b) {
     var o = {strong:0,moderate:1,watch:2};
     return o[a.strength] - o[b.strength];
