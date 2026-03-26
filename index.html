@@ -362,7 +362,7 @@ function setStatus(msg, cls='') { const el=document.getElementById('status'); el
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 async function fetchOdds(apiKey, sport) {
-  const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm,caesars,pointsbet`;
+  const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american`;
   const r = await fetch(url);
   if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.message||`HTTP ${r.status}`); }
   return r.json();
