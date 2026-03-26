@@ -288,6 +288,7 @@ footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border)
   </div>
 
   <div id="status">Enter your API key, configure Pushover, then scan or start auto-scan.</div>
+  <div id="creditsDisplay" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:12px;letter-spacing:0.05em;min-height:14px;"></div>
 
   <div id="summaryBar" style="display:none;" class="summary-bar">
     <div class="sum-item"><div class="sum-val r" id="sumStrong">0</div><div class="sum-lbl">Strong RLMs</div></div>
@@ -353,7 +354,7 @@ document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () =
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 const sportLabel = k => ({ americanfootball_nfl:'NFL', basketball_nba:'NBA', baseball_mlb:'MLB', icehockey_nhl:'NHL', americanfootball_ncaaf:'NCAAF', basketball_ncaab:'NCAAM' }[k] || k);
-const fmtSpread = p => p === null || p === undefined ? 'N/A' : p > 0 ? `+${p}` : `${p}`;
+const fmtSpread = p => { if (p === null || p === undefined) return 'N/A'; const r = Math.round(p * 10) / 10; return r > 0 ? `+${r.toFixed(1)}` : `${r.toFixed(1)}`; };
 const fmtTime = iso => { try { return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZoneName:'short'}); } catch { return ''; }};
 const nowStr = () => new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 const gameId = g => `${g.homeTeam}||${g.awayTeam}||${g.commenceTime}`;
@@ -367,8 +368,16 @@ async function fetchWithRetry(url, maxRetries=3) {
   let delay = 2000;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const resp = await fetch(url);
+    // Capture API credit headers whenever present
+    const remaining = resp.headers.get('x-requests-remaining');
+    const used = resp.headers.get('x-requests-used');
+    if (remaining !== null) {
+      window._apiCreditsRemaining = parseInt(remaining);
+      window._apiCreditsUsed = parseInt(used || 0);
+      updateCreditsDisplay();
+    }
     if (resp.status === 429) {
-      if (attempt === maxRetries) throw new Error('Rate limited (429) after retries');
+      if (attempt === maxRetries) throw new Error('Rate limited (429) — credits may be exhausted');
       await new Promise(r => setTimeout(r, delay));
       delay *= 2;
       continue;
@@ -376,6 +385,16 @@ async function fetchWithRetry(url, maxRetries=3) {
     if (!resp.ok) { const e = await resp.json().catch(()=>({})); throw new Error(e.message||`HTTP ${resp.status}`); }
     return resp.json();
   }
+}
+
+function updateCreditsDisplay() {
+  const el = document.getElementById('creditsDisplay');
+  if (!el) return;
+  const rem = window._apiCreditsRemaining;
+  const used = window._apiCreditsUsed;
+  if (rem === undefined) { el.textContent = ''; return; }
+  const color = rem < 50 ? 'var(--accent2)' : rem < 200 ? 'var(--gold)' : 'var(--green)';
+  el.innerHTML = `API Credits: <span style="color:${color};font-weight:500;">${rem.toLocaleString()} remaining</span> · ${used.toLocaleString()} used`;
 }
 
 // Returns { events: [...all games], oddsMap: { id -> gameWithOdds } }
