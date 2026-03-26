@@ -425,13 +425,8 @@ function updateCreditsDisplay() {
 // Step 1 only: fetch events for a sport (FREE — no credit cost)
 async function fetchEventsForSport(apiKey, sport, date) {
   const url = `https://api.the-odds-api.com/v4/sports/${sport}/events?apiKey=${apiKey}&commenceTimeFrom=${date}T00:00:00Z&commenceTimeTo=${date}T23:59:59Z`;
-  try {
-    const events = await fetchWithRetry(url);
-    return Array.isArray(events) ? events : [];
-  } catch(e) {
-    console.warn(`Events fetch failed for ${sport}:`, e.message);
-    return [];
-  }
+  const events = await fetchWithRetry(url); // let errors bubble up
+  return Array.isArray(events) ? events : [];
 }
 
 // Step 2 only: fetch odds for a list of known event IDs (costs credits)
@@ -838,11 +833,27 @@ async function loadGames() {
   const allEvents = [];
   const sportEventMap = {};
 
+  const loadErrors = [];
   await Promise.all(sports.map(async sport => {
-    const events = await fetchEventsForSport(apiKey, sport, date);
-    sportEventMap[sport] = events;
-    events.forEach(ev => allEvents.push({ ...ev, sportKey: sport }));
+    try {
+      const events = await fetchEventsForSport(apiKey, sport, date);
+      sportEventMap[sport] = events;
+      events.forEach(ev => allEvents.push({ ...ev, sportKey: sport }));
+    } catch(e) {
+      loadErrors.push(`${sportLabel(sport)}: ${e.message}`);
+      sportEventMap[sport] = [];
+    }
   }));
+
+  if (loadErrors.length) {
+    // Show first error prominently — likely invalid API key or network issue
+    setStatus(`Error loading games: ${loadErrors[0]}`, 'error');
+    btn.disabled = false; btn.textContent = '⬇ Load Games';
+    if (loadErrors[0].includes('401') || loadErrors[0].includes('invalid') || loadErrors[0].includes('key')) {
+      document.getElementById('apiKey').style.borderColor = 'var(--accent2)';
+    }
+    return;
+  }
 
   allFetchedGames = allEvents;
 
