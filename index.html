@@ -4,340 +4,295 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RLM Detector — Sharp Money Scanner</title>
+<title>RLM Detector</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0c0f; --surface: #111318; --surface2: #181c24; --border: #1e2530;
-    --accent: #00e5ff; --accent2: #ff3d5a; --gold: #ffd166; --green: #06d6a0;
-    --text: #e8edf5; --muted: #5a6478;
-    --mono: 'IBM Plex Mono', monospace; --display: 'Barlow Condensed', sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--display); min-height: 100vh; overflow-x: hidden; }
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background-image: linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);
-    background-size: 40px 40px; pointer-events: none; z-index: 0;
-  }
-  .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 20px 60px; }
-
-/* HEADER */
-header { border-bottom: 1px solid var(–border); padding: 24px 0 20px; margin-bottom: 24px; }
-.logo-eyebrow { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 4px; }
-.logo { font-size: 48px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
-.logo span { color: var(–accent); }
-.logo-sub { font-family: var(–mono); font-size: 11px; color: var(–muted); margin-top: 6px; letter-spacing: 0.1em; }
-
-/* SECTION LABEL */
-.section-label { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-.section-label::after { content: ‘’; flex: 1; height: 1px; background: var(–border); }
-
-/* CONFIG PANEL */
-.config-panel { background: var(–surface); border: 1px solid var(–border); border-radius: 4px; padding: 20px 24px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 18px; }
-.config-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
-.field-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
-label { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.15em; text-transform: uppercase; }
-input[type=“text”], input[type=“date”], input[type=“number”] {
-background: var(–bg); border: 1px solid var(–border); color: var(–text);
-font-family: var(–mono); font-size: 13px; padding: 10px 14px; border-radius: 3px; outline: none; transition: border-color 0.2s; width: 100%;
+:root {
+  --bg:#0a0c0f; --surface:#111318; --surface2:#181c24; --border:#1e2530;
+  --accent:#00e5ff; --accent2:#ff3d5a; --gold:#ffd166; --green:#06d6a0;
+  --text:#e8edf5; --muted:#5a6478;
+  --mono:'IBM Plex Mono',monospace; --display:'Barlow Condensed',sans-serif;
 }
-input:focus { border-color: var(–accent); }
-input[type=“date”]::-webkit-calendar-picker-indicator { filter: invert(0.4); }
-input[type=“number”]::-webkit-inner-spin-button { opacity: 0.4; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--display);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 20px 60px;}
 
-/* PILLS */
-.pill-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.row-label { font-family: var(–mono); font-size: 10px; color: var(–muted); letter-spacing: 0.15em; text-transform: uppercase; margin-right: 4px; white-space: nowrap; }
-.pill { background: var(–surface2); border: 1px solid var(–border); color: var(–muted); font-family: var(–display); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; padding: 6px 14px; border-radius: 2px; cursor: pointer; transition: all 0.15s; user-select: none; }
-.pill:hover { border-color: var(–accent); color: var(–accent); }
-.pill.active { background: var(–accent); border-color: var(–accent); color: var(–bg); }
+header{border-bottom:1px solid var(–border);padding:24px 0 20px;margin-bottom:24px;}
+.logo-eyebrow{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px;}
+.logo{font-size:48px;font-weight:900;letter-spacing:-.02em;line-height:1;}
+.logo span{color:var(–accent);}
+.logo-sub{font-family:var(–mono);font-size:11px;color:var(–muted);margin-top:6px;letter-spacing:.1em;}
 
-/* BUTTONS */
-.btn { border: none; font-family: var(–display); font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 3px; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
-.btn-primary { background: var(–accent); color: var(–bg); font-size: 15px; padding: 11px 24px; }
-.btn-primary:hover { background: #33eaff; transform: translateY(-1px); }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-.btn-green { background: var(–green); color: var(–bg); font-size: 15px; padding: 11px 24px; }
-.btn-green:hover { background: #0ff5bd; transform: translateY(-1px); }
-.btn-danger { background: transparent; color: var(–accent2); border: 1px solid var(–accent2); font-size: 13px; padding: 10px 18px; }
-.btn-danger:hover { background: rgba(255,61,90,0.1); }
-.btn-secondary { background: transparent; color: var(–muted); border: 1px solid var(–border); font-size: 13px; padding: 10px 18px; }
-.btn-secondary:hover { border-color: var(–accent); color: var(–accent); }
+.section-label{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:’’;flex:1;height:1px;background:var(–border);}
 
-/* PUSHOVER STATUS */
-.po-chip { font-family: var(–mono); font-size: 10px; padding: 4px 10px; border-radius: 2px; letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0; }
-.po-chip.ok { color: var(–green); border: 1px solid var(–green); background: rgba(6,214,160,0.08); }
-.po-chip.off { color: var(–muted); border: 1px solid var(–border); background: transparent; }
+.config-panel{background:var(–surface);border:1px solid var(–border);border-radius:4px;padding:20px 24px;margin-bottom:16px;display:flex;flex-direction:column;gap:18px;}
+.config-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
+.field-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:160px;}
+label{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.15em;text-transform:uppercase;}
+input[type=text],input[type=date],input[type=number]{
+background:var(–bg);border:1px solid var(–border);color:var(–text);
+font-family:var(–mono);font-size:13px;padding:10px 14px;border-radius:3px;outline:none;transition:border-color .2s;width:100%;}
+input:focus{border-color:var(–accent);}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);}
+input[type=number]::-webkit-inner-spin-button{opacity:.4;}
 
-/* AUTO SCAN BAR */
-.autoscan-bar { display: none; background: var(–surface); border: 1px solid var(–border); border-left: 3px solid var(–green); border-radius: 4px; padding: 12px 18px; margin-bottom: 16px; align-items: center; gap: 16px; flex-wrap: wrap; }
-.autoscan-bar.active { display: flex; }
-.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(–green); animation: blink 1.4s ease-in-out infinite; flex-shrink: 0; }
-@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
-.autoscan-info { font-family: var(–mono); font-size: 12px; color: var(–text); flex: 1; line-height: 1.6; }
-.autoscan-info .muted { color: var(–muted); }
-.countdown { font-family: var(–mono); font-size: 24px; font-weight: 500; color: var(–accent); letter-spacing: 0.05em; min-width: 65px; text-align: right; }
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.row-label{font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.15em;text-transform:uppercase;margin-right:4px;white-space:nowrap;}
+.pill{background:var(–surface2);border:1px solid var(–border);color:var(–muted);font-family:var(–display);font-size:13px;font-weight:700;letter-spacing:.08em;padding:6px 14px;border-radius:2px;cursor:pointer;transition:all .15s;user-select:none;}
+.pill:hover{border-color:var(–accent);color:var(–accent);}
+.pill.active{background:var(–accent);border-color:var(–accent);color:var(–bg);}
 
-/* LEGEND */
-.legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; padding: 12px 18px; background: var(–surface); border: 1px solid var(–border); border-radius: 4px; }
-.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(–muted); }
-.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.dot-strong { background: var(–accent2); box-shadow: 0 0 6px var(–accent2); }
-.dot-moderate { background: var(–gold); box-shadow: 0 0 6px var(–gold); }
-.dot-watch { background: var(–muted); }
+.btn{border:none;font-family:var(–display);font-weight:900;letter-spacing:.1em;text-transform:uppercase;border-radius:3px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.btn-primary{background:var(–accent);color:var(–bg);font-size:15px;padding:11px 24px;}
+.btn-primary:hover{background:#33eaff;transform:translateY(-1px);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-green{background:var(–green);color:var(–bg);font-size:15px;padding:11px 24px;}
+.btn-green:hover{background:#0ff5bd;transform:translateY(-1px);}
+.btn-green:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-danger{background:transparent;color:var(–accent2);border:1px solid var(–accent2);font-size:13px;padding:10px 18px;}
+.btn-danger:hover{background:rgba(255,61,90,.1);}
+.btn-secondary{background:transparent;color:var(–muted);border:1px solid var(–border);font-size:13px;padding:10px 18px;}
+.btn-secondary:hover{border-color:var(–accent);color:var(–accent);}
+.btn-secondary:disabled{opacity:.4;cursor:not-allowed;}
 
-/* STATUS */
-#status { font-family: var(–mono); font-size: 12px; color: var(–muted); margin-bottom: 16px; min-height: 18px; letter-spacing: 0.05em; }
-#status.loading { color: var(–accent); }
-#status.error { color: var(–accent2); }
+.step-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.step-badge{font-family:var(–mono);font-size:10px;padding:2px 8px;border-radius:2px;font-weight:600;border:1px solid var(–border);background:var(–surface2);color:var(–muted);}
+.step-badge.done-1{background:var(–accent);color:var(–bg);border-color:var(–accent);}
+.step-badge.done-2{background:var(–gold);color:var(–bg);border-color:var(–gold);}
+.step-badge.done-3{background:var(–green);color:var(–bg);border-color:var(–green);}
+.step-arrow{color:var(–border);font-size:20px;flex-shrink:0;}
+.watchlist-chip{font-family:var(–mono);font-size:10px;color:var(–gold);border:1px solid rgba(255,209,102,.4);padding:3px 9px;border-radius:2px;display:none;}
 
-/* SUMMARY BAR */
-.summary-bar { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; padding: 14px 20px; background: var(–surface); border: 1px solid var(–border); border-radius: 4px; align-items: center; }
-.sum-item { display: flex; flex-direction: column; gap: 2px; }
-.sum-val { font-size: 28px; font-weight: 700; line-height: 1; }
-.sum-lbl { font-family: var(–mono); font-size: 10px; color: var(–muted); letter-spacing: 0.1em; text-transform: uppercase; }
-.sum-val.r { color: var(–accent2); }
-.sum-val.y { color: var(–gold); }
-.sum-val.b { color: var(–accent); }
-.sep { width: 1px; background: var(–border); align-self: stretch; margin: 0 4px; }
-.last-scan-info { font-family: var(–mono); font-size: 10px; color: var(–muted); margin-left: auto; line-height: 1.7; text-align: right; }
+.po-chip{font-family:var(–mono);font-size:10px;padding:4px 10px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;flex-shrink:0;}
+.po-chip.ok{color:var(–green);border:1px solid var(–green);background:rgba(6,214,160,.08);}
+.po-chip.off{color:var(–muted);border:1px solid var(–border);background:transparent;}
 
-/* RESULTS */
-#results { display: flex; flex-direction: column; gap: 12px; }
+.autoscan-bar{display:none;background:var(–surface);border:1px solid var(–border);border-left:3px solid var(–green);border-radius:4px;padding:12px 18px;margin-bottom:16px;align-items:center;gap:16px;flex-wrap:wrap;}
+.autoscan-bar.active{display:flex;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(–green);animation:blink 1.4s ease-in-out infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.autoscan-info{font-family:var(–mono);font-size:12px;color:var(–text);flex:1;line-height:1.6;}
+.autoscan-info .muted{color:var(–muted);}
+.countdown{font-family:var(–mono);font-size:24px;font-weight:500;color:var(–accent);letter-spacing:.05em;min-width:65px;text-align:right;}
 
-/* GAME CARD */
-.game-card { background: var(–surface); border: 1px solid var(–border); border-radius: 4px; overflow: hidden; animation: fadeUp 0.3s ease both; }
-@keyframes fadeUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
-.game-card.rlm-strong { border-color: var(–accent2); }
-.game-card.rlm-moderate { border-color: var(–gold); }
-.game-card.newly-flagged { animation: fadeUp 0.3s ease both, flashNew 1.5s ease 0.3s; }
-@keyframes flashNew { 0%{box-shadow:0 0 0 3px rgba(255,61,90,0.5);} 100%{box-shadow:none;} }
+.legend{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;padding:12px 18px;background:var(–surface);border:1px solid var(–border);border-radius:4px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(–muted);}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-strong{background:var(–accent2);box-shadow:0 0 6px var(–accent2);}
+.dot-moderate{background:var(–gold);box-shadow:0 0 6px var(–gold);}
+.dot-watch{background:var(–muted);}
 
-.card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; border-bottom: 1px solid var(–border); gap: 10px; flex-wrap: wrap; }
-.sport-badge { font-family: var(–mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; background: var(–surface2); color: var(–muted); border: 1px solid var(–border); flex-shrink: 0; }
-.game-time { font-family: var(–mono); font-size: 11px; color: var(–muted); margin-left: auto; }
-.new-badge { font-family: var(–mono); font-size: 9px; color: var(–bg); background: var(–accent2); padding: 2px 7px; border-radius: 2px; letter-spacing: 0.1em; text-transform: uppercase; }
-.rlm-badge { font-family: var(–mono); font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border-radius: 2px; flex-shrink: 0; }
-.rlm-badge.strong { background: rgba(255,61,90,0.15); color: var(–accent2); border: 1px solid var(–accent2); }
-.rlm-badge.moderate { background: rgba(255,209,102,0.12); color: var(–gold); border: 1px solid var(–gold); }
-.rlm-badge.watch { background: var(–surface2); color: var(–muted); border: 1px solid var(–border); }
+#status{font-family:var(–mono);font-size:12px;color:var(–muted);margin-bottom:8px;min-height:18px;letter-spacing:.05em;}
+#status.loading{color:var(–accent);}
+#status.error{color:var(–accent2);}
+#creditsDisplay{font-family:var(–mono);font-size:10px;color:var(–muted);margin-bottom:16px;min-height:14px;}
 
-.card-body { padding: 14px 16px; display: flex; gap: 16px; flex-wrap: wrap; }
-.matchup { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 6px; }
-.team-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.team-name { font-size: 22px; font-weight: 700; letter-spacing: 0.02em; line-height: 1; }
-.team-name.sharp-side { color: var(–accent); }
-.spread { font-family: var(–mono); font-size: 13px; background: var(–surface2); padding: 3px 8px; border-radius: 2px; white-space: nowrap; }
-.vs-divider { font-family: var(–mono); font-size: 10px; color: var(–muted); letter-spacing: 0.1em; }
+.summary-bar{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;padding:14px 20px;background:var(–surface);border:1px solid var(–border);border-radius:4px;align-items:center;}
+.sum-item{display:flex;flex-direction:column;gap:2px;}
+.sum-val{font-size:28px;font-weight:700;line-height:1;}
+.sum-lbl{font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.1em;text-transform:uppercase;}
+.sum-val.r{color:var(–accent2);} .sum-val.y{color:var(–gold);} .sum-val.b{color:var(–accent);}
+.sep{width:1px;background:var(–border);align-self:stretch;margin:0 4px;}
+.last-scan-info{font-family:var(–mono);font-size:10px;color:var(–muted);margin-left:auto;line-height:1.7;text-align:right;}
 
-.metrics { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
-.metric-box { background: var(–surface2); border: 1px solid var(–border); border-radius: 3px; padding: 10px 14px; min-width: 100px; display: flex; flex-direction: column; gap: 4px; }
-.metric-label { font-family: var(–mono); font-size: 9px; color: var(–muted); letter-spacing: 0.15em; text-transform: uppercase; }
-.metric-value { font-family: var(–mono); font-size: 20px; font-weight: 500; line-height: 1; }
-.mv-pos { color: var(–green); } .mv-neg { color: var(–accent2); } .mv-neu { color: var(–gold); }
+#results{display:flex;flex-direction:column;gap:12px;}
 
-.signal-row { padding: 10px 16px; background: var(–surface2); border-top: 1px solid var(–border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.signal-text { font-family: var(–mono); font-size: 11px; color: var(–muted); flex: 1; }
-.signal-text strong { color: var(–text); }
-.sharp-tag { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+.game-card{background:var(–surface);border:1px solid var(–border);border-radius:4px;overflow:hidden;animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.game-card.rlm-strong{border-color:var(–accent2);}
+.game-card.rlm-moderate{border-color:var(–gold);}
+.game-card.newly-flagged{animation:fadeUp .3s ease both,flashNew 1.5s ease .3s;}
+@keyframes flashNew{0%{box-shadow:0 0 0 3px rgba(255,61,90,.5);}100%{box-shadow:none;}}
 
-/* EMPTY STATE */
-.empty-state { text-align: center; padding: 60px 20px; color: var(–muted); font-family: var(–mono); font-size: 13px; border: 1px dashed var(–border); border-radius: 4px; }
-.empty-state .big { font-size: 36px; font-family: var(–display); font-weight: 900; color: var(–surface2); display: block; margin-bottom: 12px; }
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(–border);gap:10px;flex-wrap:wrap;}
+.sport-badge{font-family:var(–mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:var(–surface2);color:var(–muted);border:1px solid var(–border);flex-shrink:0;}
+.game-time{font-family:var(–mono);font-size:11px;color:var(–muted);margin-left:auto;}
+.new-badge{font-family:var(–mono);font-size:9px;color:var(–bg);background:var(–accent2);padding:2px 7px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;}
+.rlm-badge{font-family:var(–mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:2px;flex-shrink:0;}
+.rlm-badge.strong{background:rgba(255,61,90,.15);color:var(–accent2);border:1px solid var(–accent2);}
+.rlm-badge.moderate{background:rgba(255,209,102,.12);color:var(–gold);border:1px solid var(–gold);}
+.rlm-badge.watch{background:var(–surface2);color:var(–muted);border:1px solid var(–border);}
 
-/* MODAL */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-.modal-overlay.open { display: flex; }
-.modal { background: var(–surface); border: 1px solid var(–border); border-radius: 6px; width: 100%; max-width: 700px; max-height: 82vh; display: flex; flex-direction: column; overflow: hidden; }
-.modal-header { padding: 18px 20px; border-bottom: 1px solid var(–border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.modal-title { font-size: 24px; font-weight: 900; }
-.modal-subtitle { font-family: var(–mono); font-size: 11px; color: var(–muted); }
-.modal-close { background: none; border: none; color: var(–muted); font-size: 24px; cursor: pointer; line-height: 1; padding: 0 4px; }
-.modal-close:hover { color: var(–text); }
-.modal-body { overflow-y: auto; padding: 16px 20px; flex: 1; }
-.modal-footer { padding: 14px 20px; border-top: 1px solid var(–border); display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
-.modal-note { font-family: var(–mono); font-size: 10px; color: var(–muted); flex: 1; line-height: 1.6; }
+.card-body{padding:14px 16px;display:flex;gap:16px;flex-wrap:wrap;}
+.matchup{flex:1;min-width:180px;display:flex;flex-direction:column;gap:6px;}
+.team-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.team-name{font-size:22px;font-weight:700;letter-spacing:.02em;line-height:1;}
+.team-name.sharp-side{color:var(–accent);}
+.spread{font-family:var(–mono);font-size:13px;background:var(–surface2);padding:3px 8px;border-radius:2px;white-space:nowrap;}
+.vs-divider{font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.1em;}
+.metrics{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;}
+.metric-box{background:var(–surface2);border:1px solid var(–border);border-radius:3px;padding:10px 14px;min-width:100px;display:flex;flex-direction:column;gap:4px;}
+.metric-label{font-family:var(–mono);font-size:9px;color:var(–muted);letter-spacing:.15em;text-transform:uppercase;}
+.metric-value{font-family:var(–mono);font-size:20px;font-weight:500;line-height:1;}
+.mv-pos{color:var(–green);} .mv-neg{color:var(–accent2);} .mv-neu{color:var(–gold);}
+.signal-row{padding:10px 16px;background:var(–surface2);border-top:1px solid var(–border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.signal-text{font-family:var(–mono);font-size:11px;color:var(–muted);flex:1;}
+.signal-text strong{color:var(–text);}
+.sharp-tag{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;}
 
-.picker-loading { font-family: var(–mono); font-size: 12px; color: var(–muted); text-align: center; padding: 40px; }
-.picker-sport-header { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.2em; text-transform: uppercase; margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(–border); }
-.picker-sport-header:first-child { margin-top: 0; }
-.picker-game { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 3px; cursor: pointer; transition: background 0.12s; border: 1px solid transparent; margin-bottom: 4px; }
-.picker-game:hover { background: var(–surface2); }
-.picker-game.selected { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
-.picker-game input[type=“checkbox”] { accent-color: var(–accent); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
-.picker-game-name { font-size: 16px; font-weight: 700; flex: 1; }
-.picker-game-time { font-family: var(–mono); font-size: 10px; color: var(–muted); white-space: nowrap; }
-.picker-controls { display: flex; gap: 12px; margin-bottom: 14px; }
-.picker-ctrl-btn { font-family: var(–mono); font-size: 10px; color: var(–accent); background: none; border: none; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: underline; padding: 0; }
+.empty-state{text-align:center;padding:60px 20px;color:var(–muted);font-family:var(–mono);font-size:13px;border:1px dashed var(–border);border-radius:4px;}
+.empty-state .big{font-size:36px;font-family:var(–display);font-weight:900;color:var(–surface2);display:block;margin-bottom:12px;}
 
-/* NOTIFICATION LOG */
-.notif-log { margin-top: 28px; }
-.notif-entry { font-family: var(–mono); font-size: 11px; padding: 7px 0; border-bottom: 1px solid var(–border); display: flex; gap: 14px; }
-.nt { color: var(–muted); flex-shrink: 0; }
-.nm { color: var(–text); }
-.notif-entry.sent .nm { color: var(–green); }
-.notif-entry.fail .nm { color: var(–accent2); }
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(–surface);border:1px solid var(–border);border-radius:6px;width:100%;max-width:700px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(–border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.modal-title{font-size:24px;font-weight:900;}
+.modal-subtitle{font-family:var(–mono);font-size:11px;color:var(–muted);}
+.modal-close{background:none;border:none;color:var(–muted);font-size:24px;cursor:pointer;line-height:1;padding:0 4px;}
+.modal-close:hover{color:var(–text);}
+.modal-body{overflow-y:auto;padding:16px 20px;flex:1;}
+.modal-footer{padding:14px 20px;border-top:1px solid var(–border);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
+.modal-note{font-family:var(–mono);font-size:10px;color:var(–muted);flex:1;line-height:1.6;}
+.picker-loading{font-family:var(–mono);font-size:12px;color:var(–muted);text-align:center;padding:40px;}
+.picker-sport-header{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.2em;text-transform:uppercase;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(–border);}
+.picker-sport-header:first-child{margin-top:0;}
+.picker-game{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:3px;cursor:pointer;transition:background .12s;border:1px solid transparent;margin-bottom:4px;}
+.picker-game:hover{background:var(–surface2);}
+.picker-game.selected{background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.18);}
+.picker-game input[type=checkbox]{accent-color:var(–accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;}
+.picker-game-name{font-size:16px;font-weight:700;flex:1;}
+.picker-game-time{font-family:var(–mono);font-size:10px;color:var(–muted);white-space:nowrap;}
+.picker-controls{display:flex;gap:12px;margin-bottom:14px;}
+.picker-ctrl-btn{font-family:var(–mono);font-size:10px;color:var(–accent);background:none;border:none;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;text-decoration:underline;padding:0;}
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(–bg); }
-::-webkit-scrollbar-thumb { background: var(–border); border-radius: 3px; }
-footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border); font-family: var(–mono); font-size: 10px; color: var(–muted); letter-spacing: 0.08em; text-align: center; }
+.notif-log{margin-top:28px;}
+.notif-entry{font-family:var(–mono);font-size:11px;padding:7px 0;border-bottom:1px solid var(–border);display:flex;gap:14px;}
+.nt{color:var(–muted);flex-shrink:0;}
+.nm{color:var(–text);}
+.notif-entry.sent .nm{color:var(–green);}
+.notif-entry.fail .nm{color:var(–accent2);}
+
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(–bg);}
+::-webkit-scrollbar-thumb{background:var(–border);border-radius:3px;}
+footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.08em;text-align:center;}
 </style>
 
 </head>
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="logo-eyebrow">// sharp money scanner v2</div>
-    <div class="logo">RLM<span>.</span>DETECT</div>
-    <div class="logo-sub">load games · select watchlist · auto-scan · pushover alerts</div>
-  </header>
+<header>
+  <div class="logo-eyebrow">// sharp money scanner v3</div>
+  <div class="logo">RLM<span>.</span>DETECT</div>
+  <div class="logo-sub">load games &middot; select watchlist &middot; auto-scan &middot; pushover alerts</div>
+</header>
 
-  <!-- CONFIG -->
-
-  <div class="section-label">Configuration</div>
-  <div class="config-panel">
-
-```
-<!-- Keys + Date + Interval -->
-<div class="config-row">
-  <div class="field-group" style="max-width:300px;">
-    <label>The Odds API Key</label>
-    <input type="text" id="apiKey" placeholder="Your Odds API key..." autocomplete="off">
+<div class="section-label">Configuration</div>
+<div class="config-panel">
+  <div class="config-row">
+    <div class="field-group" style="max-width:300px;">
+      <label>The Odds API Key</label>
+      <input type="text" id="apiKey" placeholder="Your Odds API key..." autocomplete="off">
+    </div>
+    <div class="field-group" style="max-width:170px;">
+      <label>Date</label>
+      <input type="date" id="scanDate">
+    </div>
+    <div class="field-group" style="max-width:140px;">
+      <label>Interval (min)</label>
+      <input type="number" id="scanInterval" value="30" min="5" max="120" style="text-align:center;">
+    </div>
   </div>
-  <div class="field-group" style="max-width:170px;">
-    <label>Date</label>
-    <input type="date" id="scanDate">
+  <div class="config-row">
+    <div class="field-group" style="max-width:280px;">
+      <label>Pushover User Key</label>
+      <input type="text" id="poUserKey" placeholder="Your Pushover user key..." autocomplete="off">
+    </div>
+    <div class="field-group" style="max-width:280px;">
+      <label>Pushover App Token</label>
+      <input type="text" id="poAppToken" placeholder="Your app API token..." autocomplete="off">
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:8px;">
+      <button class="btn btn-secondary" onclick="testPushover()">Test Ping</button>
+      <span id="poChip" class="po-chip off">Not configured</span>
+    </div>
   </div>
-  <div class="field-group" style="max-width:140px;">
-    <label>Interval (min)</label>
-    <input type="number" id="scanInterval" value="30" min="5" max="120" style="text-align:center;">
+  <div class="pill-row">
+    <span class="row-label">Sports:</span>
+    <div class="pill active" data-sport="americanfootball_nfl">NFL</div>
+    <div class="pill active" data-sport="basketball_nba">NBA</div>
+    <div class="pill active" data-sport="baseball_mlb">MLB</div>
+    <div class="pill active" data-sport="icehockey_nhl">NHL</div>
+    <div class="pill active" data-sport="americanfootball_ncaaf">NCAAF</div>
+    <div class="pill active" data-sport="basketball_ncaab">NCAAM</div>
+  </div>
+  <div class="pill-row">
+    <span class="row-label">Notify on:</span>
+    <div class="pill active" data-alert="strong">&#x1F525; Strong RLM</div>
+    <div class="pill active" data-alert="moderate">&#x26A1; Moderate RLM</div>
+  </div>
+
+  <!-- 3-STEP WORKFLOW -->
+
+  <div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px;">Workflow</div>
+    <div class="step-row">
+      <span id="badge1" class="step-badge">1</span>
+      <button class="btn btn-primary" id="loadBtn" onclick="loadGames()">&#x2B07; Load Games</button>
+      <span class="step-arrow">&#x203A;</span>
+      <span id="badge2" class="step-badge">2</span>
+      <button class="btn btn-secondary" id="pickBtn" onclick="openPicker()" disabled>&#x1F3AF; Select Games</button>
+      <span id="watchlistChip" class="watchlist-chip"></span>
+      <span class="step-arrow">&#x203A;</span>
+      <span id="badge3" class="step-badge">3</span>
+      <button class="btn btn-green" id="startBtn" onclick="startAutoScan()" disabled>&#x25B6; Start Auto-Scan</button>
+      <button class="btn btn-danger" id="stopBtn" style="display:none;" onclick="stopAutoScan()">&#x25A0; Stop</button>
+      <button class="btn btn-secondary" onclick="clearSettings()" style="margin-left:auto;font-size:11px;padding:8px 14px;">&#x1F5D1; Clear Saved</button>
+    </div>
   </div>
 </div>
 
-<!-- Pushover -->
-<div class="config-row">
-  <div class="field-group" style="max-width:280px;">
-    <label>Pushover User Key</label>
-    <input type="text" id="poUserKey" placeholder="Your Pushover user key..." autocomplete="off">
+<div class="autoscan-bar" id="autoscanBar">
+  <div class="live-dot"></div>
+  <div class="autoscan-info">
+    <strong>Auto-scan active</strong> &nbsp;&middot;&nbsp;
+    <span class="muted">Scans: </span><span id="scanCountEl">0</span> &nbsp;&middot;&nbsp;
+    <span class="muted">Last: </span><span id="lastScanEl">&#x2014;</span>
   </div>
-  <div class="field-group" style="max-width:280px;">
-    <label>Pushover App Token</label>
-    <input type="text" id="poAppToken" placeholder="Your app API token..." autocomplete="off">
-  </div>
-  <div style="display:flex;align-items:flex-end;gap:8px;">
-    <button class="btn btn-secondary" onclick="testPushover()">Test Ping</button>
-    <span id="poChip" class="po-chip off">Not configured</span>
+  <div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.1em;text-align:right;margin-bottom:2px;">NEXT SCAN</div>
+    <div class="countdown" id="countdownEl">&#x2014;</div>
   </div>
 </div>
 
-<!-- Sports -->
-<div class="pill-row">
-  <span class="row-label">Sports:</span>
-  <div class="pill active" data-sport="americanfootball_nfl">NFL</div>
-  <div class="pill active" data-sport="basketball_nba">NBA</div>
-  <div class="pill active" data-sport="baseball_mlb">MLB</div>
-  <div class="pill active" data-sport="icehockey_nhl">NHL</div>
-  <div class="pill active" data-sport="americanfootball_ncaaf">NCAAF</div>
-  <div class="pill active" data-sport="basketball_ncaab">NCAAM</div>
+<div class="legend">
+  <div class="legend-item"><div class="dot dot-strong"></div> Strong RLM &mdash; Pinnacle diverges from soft books AND confirms public/sharp split</div>
+  <div class="legend-item"><div class="dot dot-moderate"></div> Moderate RLM &mdash; Pinnacle diverges 0.5+ pts from soft books</div>
+  <div class="legend-item"><div class="dot dot-watch"></div> No divergence</div>
 </div>
 
-<!-- Alert level -->
-<div class="pill-row">
-  <span class="row-label">Notify on:</span>
-  <div class="pill active" data-alert="strong">🔥 Strong RLM</div>
-  <div class="pill active" data-alert="moderate">⚡ Moderate RLM</div>
+<div id="status">Step 1 &mdash; Enter your API key and click Load Games.</div>
+<div id="creditsDisplay"></div>
+
+<div id="summaryBar" style="display:none;" class="summary-bar">
+  <div class="sum-item"><div class="sum-val r" id="sumStrong">0</div><div class="sum-lbl">Strong RLMs</div></div>
+  <div class="sep"></div>
+  <div class="sum-item"><div class="sum-val y" id="sumModerate">0</div><div class="sum-lbl">Moderate RLMs</div></div>
+  <div class="sep"></div>
+  <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Games Watching</div></div>
+  <div class="last-scan-info" id="lastScanInfo"></div>
 </div>
 
-<!-- Step-based action flow -->
-<div style="display:flex;flex-direction:column;gap:10px;">
-  <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;">Workflow</div>
-  <div class="config-row" style="gap:10px;align-items:center;">
-
-    <!-- Step 1 -->
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span id="step1Badge" style="font-family:var(--mono);font-size:10px;background:var(--accent);color:var(--bg);padding:2px 7px;border-radius:2px;font-weight:600;">1</span>
-      <button class="btn btn-primary" id="loadBtn" onclick="loadGames()">⬇ Load Games</button>
-    </div>
-
-    <span style="color:var(--border);font-size:20px;">›</span>
-
-    <!-- Step 2 -->
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span id="step2Badge" style="font-family:var(--mono);font-size:10px;background:var(--surface2);color:var(--muted);padding:2px 7px;border-radius:2px;font-weight:600;border:1px solid var(--border);">2</span>
-      <button class="btn btn-secondary" id="pickBtn" onclick="openPicker()" disabled>🎯 Select Games</button>
-      <span id="watchlistChip" style="display:none;font-family:var(--mono);font-size:10px;color:var(--gold);border:1px solid rgba(255,209,102,0.4);padding:3px 9px;border-radius:2px;"></span>
-    </div>
-
-    <span style="color:var(--border);font-size:20px;">›</span>
-
-    <!-- Step 3 -->
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span id="step3Badge" style="font-family:var(--mono);font-size:10px;background:var(--surface2);color:var(--muted);padding:2px 7px;border-radius:2px;font-weight:600;border:1px solid var(--border);">3</span>
-      <button class="btn btn-green" id="startBtn" onclick="startAutoScan()" disabled>▶ Start Auto-Scan</button>
-      <button class="btn btn-danger" id="stopBtn" style="display:none;" onclick="stopAutoScan()">■ Stop</button>
-    </div>
-
-    <button class="btn btn-secondary" onclick="clearSettings()" style="margin-left:auto;font-size:11px;padding:8px 14px;" title="Clear all saved keys and preferences">🗑 Clear Saved</button>
+<div id="results">
+  <div class="empty-state">
+    <span class="big">READY</span>
+    Step 1: Load Games &rarr; Step 2: Select games to watch &rarr; Step 3: Start Auto-Scan
   </div>
 </div>
-```
 
-  </div>
-
-  <!-- AUTO SCAN STATUS BAR -->
-
-  <div class="autoscan-bar" id="autoscanBar">
-    <div class="live-dot"></div>
-    <div class="autoscan-info">
-      <strong>Auto-scan active</strong> &nbsp;·&nbsp;
-      <span class="muted">Scans run: </span><span id="scanCountEl">0</span> &nbsp;·&nbsp;
-      <span class="muted">Last: </span><span id="lastScanEl">—</span>
-    </div>
-    <div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.1em;text-align:right;margin-bottom:2px;">NEXT SCAN</div>
-      <div class="countdown" id="countdownEl">—</div>
-    </div>
-  </div>
-
-  <!-- LEGEND -->
-
-  <div class="legend">
-    <div class="legend-item"><div class="dot dot-strong"></div> Strong RLM — Pinnacle diverges from soft books AND line confirms public-vs-sharp split (high-priority Pushover)</div>
-    <div class="legend-item"><div class="dot dot-moderate"></div> Moderate RLM — Pinnacle diverges 0.5+ pts from soft books (normal Pushover)</div>
-    <div class="legend-item"><div class="dot dot-watch"></div> No divergence detected</div>
-  </div>
-
-  <div id="status">Step 1 — Enter your API key and click Load Games to fetch today's schedule.</div>
-  <div id="creditsDisplay" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:12px;letter-spacing:0.05em;min-height:14px;"></div>
-
-  <div id="summaryBar" style="display:none;" class="summary-bar">
-    <div class="sum-item"><div class="sum-val r" id="sumStrong">0</div><div class="sum-lbl">Strong RLMs</div></div>
-    <div class="sep"></div>
-    <div class="sum-item"><div class="sum-val y" id="sumModerate">0</div><div class="sum-lbl">Moderate RLMs</div></div>
-    <div class="sep"></div>
-    <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Total Games</div></div>
-    <div class="last-scan-info" id="lastScanInfo"></div>
-  </div>
-
-  <div id="results">
-    <div class="empty-state">
-      <span class="big">NO SCAN YET</span>
-      Step 1: Click Load Games to fetch today's schedule. Step 2: Select which games to monitor. Step 3: Start Auto-Scan.
-    </div>
-  </div>
-
-  <!-- NOTIFICATION LOG -->
-
-  <div id="notifLogWrap" style="display:none;" class="notif-log">
-    <div class="section-label" style="margin-top:24px;">Notification Log</div>
-    <div id="notifLog"></div>
-  </div>
-
+<div id="notifLogWrap" style="display:none;" class="notif-log">
+  <div class="section-label" style="margin-top:24px;">Notification Log</div>
+  <div id="notifLog"></div>
 </div>
+
+</div><!-- end .wrap -->
 
 <!-- GAME PICKER MODAL -->
 
@@ -345,586 +300,535 @@ footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border)
   <div class="modal">
     <div class="modal-header">
       <div>
-        <div class="modal-title">Game Watchlist</div>
-        <div class="modal-subtitle" id="pickerSubtitle">Select specific games to monitor</div>
+        <div class="modal-title">Select Games to Watch</div>
+        <div class="modal-subtitle" id="pickerSubtitle">Choose which games to monitor for RLMs</div>
       </div>
-      <button class="modal-close" onclick="closePicker()">×</button>
+      <button class="modal-close" onclick="closePicker()">&#x00D7;</button>
     </div>
     <div class="modal-body" id="pickerBody">
-      <div class="picker-loading">Loading games…</div>
+      <div class="picker-loading">Load games first (Step 1)</div>
     </div>
     <div class="modal-footer">
-      <div class="modal-note">Select the games you want to monitor for RLM. At least one game must be selected to enable auto-scan.</div>
+      <div class="modal-note">Select at least one game to enable auto-scan.</div>
       <button class="btn btn-secondary" onclick="closePicker()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveWatchlist()">Save Watchlist</button>
+      <button class="btn btn-primary" onclick="saveWatchlist()">Save Selection</button>
     </div>
   </div>
 </div>
 
-<footer>RLM.DETECT — The Odds API + Pushover &nbsp;|&nbsp; Line movement + public % signals &nbsp;|&nbsp; Not financial advice</footer>
+<footer>RLM.DETECT &mdash; The Odds API + Pushover &nbsp;|&nbsp; Pinnacle vs soft book divergence &nbsp;|&nbsp; Not financial advice</footer>
 
 <script>
-// ─── STATE ────────────────────────────────────────────────────────────────────
-let autoTimer = null, countdownTimer = null, nextScanAt = null;
-let scanCount = 0;
-let previousRLMs = new Set();   // game IDs already alerted this session
-let allFetchedGames = [];        // raw games from last full fetch
-let watchlist = new Set();       // game IDs to monitor (empty = all)
-let pickerTemp = new Set();      // temp selection in modal
+// ─── STATE ───────────────────────────────────────────────────────────────────
+var autoTimer = null, countdownTimer = null, nextScanAt = null;
+var scanCount = 0;
+var previousRLMs = new Set();
+var allFetchedGames = [];
+var watchlist = new Set();
+var pickerTemp = new Set();
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+// ─── INIT ────────────────────────────────────────────────────────────────────
 document.getElementById('scanDate').value = new Date().toISOString().split('T')[0];
-document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => p.classList.toggle('active')));
+document.querySelectorAll('.pill').forEach(function(p) {
+  p.addEventListener('click', function() { p.classList.toggle('active'); });
+});
 
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-const sportLabel = k => ({ americanfootball_nfl:'NFL', basketball_nba:'NBA', baseball_mlb:'MLB', icehockey_nhl:'NHL', americanfootball_ncaaf:'NCAAF', basketball_ncaab:'NCAAM' }[k] || k);
-const fmtSpread = p => { if (p === null || p === undefined) return 'N/A'; const r = Math.round(p * 2) / 2; return r > 0 ? `+${r.toFixed(1)}` : `${r.toFixed(1)}`; };
-const roundHalf = p => Math.round(p * 2) / 2;
-const fmtTime = iso => { try { return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZoneName:'short'}); } catch { return ''; }};
-const nowStr = () => new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-const gameId = g => `${g.homeTeam}||${g.awayTeam}||${g.commenceTime}`;
-const gameIdRaw = g => `${g.home_team}||${g.away_team}||${g.commence_time}`;
-function setStatus(msg, cls='') { const el=document.getElementById('status'); el.textContent=msg; el.className=cls; }
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function sportLabel(k) {
+  var m = {americanfootball_nfl:'NFL',basketball_nba:'NBA',baseball_mlb:'MLB',icehockey_nhl:'NHL',americanfootball_ncaaf:'NCAAF',basketball_ncaab:'NCAAM'};
+  return m[k] || k;
+}
+function fmtSpread(p) {
+  if (p === null || p === undefined) return 'N/A';
+  var r = Math.round(p * 2) / 2;
+  return r > 0 ? '+' + r.toFixed(1) : r.toFixed(1);
+}
+function roundHalf(p) { return Math.round(p * 2) / 2; }
+function fmtTime(iso) {
+  try { return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZoneName:'short'}); } catch(e) { return ''; }
+}
+function nowStr() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function gameId(g) { return g.homeTeam + '||' + g.awayTeam + '||' + g.commenceTime; }
+function gameIdRaw(g) { return g.home_team + '||' + g.away_team + '||' + g.commence_time; }
+function setStatus(msg, cls) { var el = document.getElementById('status'); el.textContent = msg; el.className = cls || ''; }
+function addLog(msg, cls) {
+  document.getElementById('notifLogWrap').style.display = 'block';
+  var log = document.getElementById('notifLog');
+  var el = document.createElement('div');
+  el.className = 'notif-entry ' + (cls || '');
+  el.innerHTML = '<span class="nt">' + nowStr() + '</span><span class="nm">' + msg + '</span>';
+  log.insertBefore(el, log.firstChild);
+  while (log.children.length > 60) log.removeChild(log.lastChild);
+}
 
-// ─── API ──────────────────────────────────────────────────────────────────────
-
-// Retry a fetch up to maxRetries times on 429, with exponential backoff
-async function fetchWithRetry(url, maxRetries=3) {
-  let delay = 2000;
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const resp = await fetch(url);
-    // Capture API credit headers whenever present
-    const remaining = resp.headers.get('x-requests-remaining');
-    const used = resp.headers.get('x-requests-used');
+// ─── API ─────────────────────────────────────────────────────────────────────
+async function fetchWithRetry(url, maxRetries) {
+  if (maxRetries === undefined) maxRetries = 3;
+  var delay = 2000;
+  for (var attempt = 0; attempt <= maxRetries; attempt++) {
+    var resp = await fetch(url);
+    var remaining = resp.headers.get('x-requests-remaining');
+    var used = resp.headers.get('x-requests-used');
     if (remaining !== null) {
-      window._apiCreditsRemaining = parseInt(remaining);
-      window._apiCreditsUsed = parseInt(used || 0);
+      window._credRem = parseInt(remaining);
+      window._credUsed = parseInt(used || 0);
       updateCreditsDisplay();
     }
     if (resp.status === 429) {
-      if (attempt === maxRetries) throw new Error('Rate limited (429) — credits may be exhausted');
-      await new Promise(r => setTimeout(r, delay));
+      if (attempt === maxRetries) throw new Error('Rate limited (429)');
+      await new Promise(function(r) { setTimeout(r, delay); });
       delay *= 2;
       continue;
     }
-    if (!resp.ok) { const e = await resp.json().catch(()=>({})); throw new Error(e.message||`HTTP ${resp.status}`); }
+    if (!resp.ok) {
+      var errData = await resp.json().catch(function() { return {}; });
+      throw new Error(errData.message || 'HTTP ' + resp.status);
+    }
     return resp.json();
   }
 }
 
 function updateCreditsDisplay() {
-  const el = document.getElementById('creditsDisplay');
-  if (!el) return;
-  const rem = window._apiCreditsRemaining;
-  const used = window._apiCreditsUsed;
-  if (rem === undefined) { el.textContent = ''; return; }
-  const color = rem < 50 ? 'var(--accent2)' : rem < 200 ? 'var(--gold)' : 'var(--green)';
-  el.innerHTML = `API Credits: <span style="color:${color};font-weight:500;">${rem.toLocaleString()} remaining</span> · ${used.toLocaleString()} used`;
+  var el = document.getElementById('creditsDisplay');
+  if (!el || window._credRem === undefined) return;
+  var color = window._credRem < 50 ? 'var(--accent2)' : window._credRem < 200 ? 'var(--gold)' : 'var(--green)';
+  el.innerHTML = 'API Credits: <span style="color:' + color + ';font-weight:500;">' + window._credRem.toLocaleString() + ' remaining</span> &middot; ' + window._credUsed.toLocaleString() + ' used';
 }
 
-// Step 1 only: fetch events for a sport (FREE — no credit cost)
 async function fetchEventsForSport(apiKey, sport, date) {
-  const url = `https://api.the-odds-api.com/v4/sports/${sport}/events?apiKey=${apiKey}&commenceTimeFrom=${date}T00:00:00Z&commenceTimeTo=${date}T23:59:59Z`;
-  const events = await fetchWithRetry(url); // let errors bubble up
+  var url = 'https://api.the-odds-api.com/v4/sports/' + sport + '/events?apiKey=' + apiKey + '&commenceTimeFrom=' + date + 'T00:00:00Z&commenceTimeTo=' + date + 'T23:59:59Z';
+  var events = await fetchWithRetry(url);
   return Array.isArray(events) ? events : [];
 }
 
-// Step 2 only: fetch odds for a list of known event IDs (costs credits)
 async function fetchOddsForEvents(apiKey, sport, events) {
-  const chunkSize = 10;
-  const oddsMap = {};
-  for (let i = 0; i < events.length; i += chunkSize) {
-    const chunk = events.slice(i, i + chunkSize);
-    const ids = chunk.map(e => e.id).join(',');
-    const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us,eu&markets=spreads&oddsFormat=american&eventIds=${ids}`;
+  var chunkSize = 10;
+  var oddsMap = {};
+  for (var i = 0; i < events.length; i += chunkSize) {
+    var chunk = events.slice(i, i + chunkSize);
+    var ids = chunk.map(function(e) { return e.id; }).join(',');
+    var url = 'https://api.the-odds-api.com/v4/sports/' + sport + '/odds/?apiKey=' + apiKey + '&regions=us,eu&markets=spreads&oddsFormat=american&eventIds=' + ids;
     try {
-      const data = await fetchWithRetry(url);
-      data.forEach(g => { oddsMap[g.id] = g; });
+      var data = await fetchWithRetry(url);
+      data.forEach(function(g) { oddsMap[g.id] = g; });
     } catch(e) {
-      console.warn(`Odds chunk failed for ${sport}:`, e.message);
+      console.warn('Odds chunk failed for ' + sport + ':', e.message);
     }
-    if (i + chunkSize < events.length) await new Promise(r => setTimeout(r, 300));
+    if (i + chunkSize < events.length) {
+      await new Promise(function(r) { setTimeout(r, 300); });
+    }
   }
   return oddsMap;
 }
 
-// ─── RLM ANALYSIS ─────────────────────────────────────────────────────────────
-
-// Sharp books — market makers that sharp bettors use
-const SHARP_BOOKS  = ['pinnacle', 'betfair', 'matchbook'];
-// Soft books — where public money flows
-const SOFT_BOOKS   = ['draftkings', 'fanduel', 'betmgm', 'caesars', 'pointsbet', 'williamhill_us', 'barstool', 'unibet_us'];
+// ─── RLM ANALYSIS ────────────────────────────────────────────────────────────
+var SHARP_BOOKS = ['pinnacle','betfair','matchbook'];
+var SOFT_BOOKS  = ['draftkings','fanduel','betmgm','caesars','pointsbet','williamhill_us','barstool','unibet_us'];
 
 function getBookSpread(game, bookKeys, teamName) {
-  for (const key of bookKeys) {
-    const bm = game.bookmakers?.find(b => b.key === key);
+  for (var i = 0; i < bookKeys.length; i++) {
+    var bm = null;
+    for (var j = 0; j < game.bookmakers.length; j++) {
+      if (game.bookmakers[j].key === bookKeys[i]) { bm = game.bookmakers[j]; break; }
+    }
     if (!bm) continue;
-    const mkt = bm.markets?.find(m => m.key === 'spreads');
+    var mkt = null;
+    for (var k = 0; k < bm.markets.length; k++) {
+      if (bm.markets[k].key === 'spreads') { mkt = bm.markets[k]; break; }
+    }
     if (!mkt) continue;
-    const out = mkt.outcomes.find(o => o.name === teamName);
-    if (out?.point != null) return roundHalf(out.point);
+    for (var l = 0; l < mkt.outcomes.length; l++) {
+      if (mkt.outcomes[l].name === teamName && mkt.outcomes[l].point != null) {
+        return roundHalf(mkt.outcomes[l].point);
+      }
+    }
   }
   return null;
 }
 
 function avgBookSpread(game, bookKeys, teamName) {
-  const points = [];
-  for (const key of bookKeys) {
-    const bm = game.bookmakers?.find(b => b.key === key);
+  var points = [];
+  for (var i = 0; i < bookKeys.length; i++) {
+    var bm = null;
+    for (var j = 0; j < game.bookmakers.length; j++) {
+      if (game.bookmakers[j].key === bookKeys[i]) { bm = game.bookmakers[j]; break; }
+    }
     if (!bm) continue;
-    const mkt = bm.markets?.find(m => m.key === 'spreads');
+    var mkt = null;
+    for (var k = 0; k < bm.markets.length; k++) {
+      if (bm.markets[k].key === 'spreads') { mkt = bm.markets[k]; break; }
+    }
     if (!mkt) continue;
-    const out = mkt.outcomes.find(o => o.name === teamName);
-    if (out?.point != null) points.push(roundHalf(out.point));
+    for (var l = 0; l < mkt.outcomes.length; l++) {
+      if (mkt.outcomes[l].name === teamName && mkt.outcomes[l].point != null) {
+        points.push(roundHalf(mkt.outcomes[l].point));
+      }
+    }
   }
   if (!points.length) return null;
-  return roundHalf(points.reduce((a,b) => a+b, 0) / points.length);
+  return roundHalf(points.reduce(function(a,b){return a+b;},0) / points.length);
 }
 
 function analyzeRLM(game, sport) {
-  if (!game.bookmakers?.length) return null;
+  if (!game.bookmakers || !game.bookmakers.length) return null;
 
-  // ── Get Pinnacle (sharp) line ──────────────────────────────────────────────
-  const sharpHome = getBookSpread(game, SHARP_BOOKS, game.home_team);
-  const sharpAway = getBookSpread(game, SHARP_BOOKS, game.away_team);
+  var sharpHome = getBookSpread(game, SHARP_BOOKS, game.home_team);
+  var softHome  = avgBookSpread(game, SOFT_BOOKS, game.home_team);
+  var softAway  = avgBookSpread(game, SOFT_BOOKS, game.away_team);
 
-  // ── Get soft book consensus line ───────────────────────────────────────────
-  const softHome = avgBookSpread(game, SOFT_BOOKS, game.home_team);
-  const softAway = avgBookSpread(game, SOFT_BOOKS, game.away_team);
+  var allSpreads = [];
+  game.bookmakers.forEach(function(bm) {
+    bm.markets.forEach(function(mkt) {
+      if (mkt.key !== 'spreads') return;
+      mkt.outcomes.forEach(function(o) {
+        if (o.name === game.home_team && o.point != null) allSpreads.push(roundHalf(o.point));
+      });
+    });
+  });
 
-  // ── Fallback: use any available book if neither sharp nor soft found ────────
-  const allSpreadsHome = game.bookmakers
-    .map(b => b.markets?.find(m=>m.key==='spreads')?.outcomes?.find(o=>o.name===game.home_team)?.point)
-    .filter(v => v != null);
-  const fallbackHome = allSpreadsHome.length ? roundHalf(allSpreadsHome.reduce((a,b)=>a+b,0)/allSpreadsHome.length) : null;
+  var fallbackHome = allSpreads.length ? roundHalf(allSpreads.reduce(function(a,b){return a+b;},0)/allSpreads.length) : null;
+  var curHome = softHome !== null ? softHome : (sharpHome !== null ? sharpHome : fallbackHome);
+  var curAway = softAway !== null ? softAway : (curHome !== null ? roundHalf(-curHome) : null);
+  if (curHome === null) return null;
 
-  const curHome = softHome ?? sharpHome ?? fallbackHome;
-  const curAway = softAway ?? sharpAway ?? (curHome != null ? roundHalf(-curHome) : null);
-  if (curHome == null) return null;
+  var hasSharp = sharpHome !== null;
+  var hasSoft  = softHome !== null;
+  var sharp = null, s1 = false, s2 = false, lineDesc = '', pubDesc = '';
+  var diff = 0, openLine = curHome;
 
-  // Which books are actually present — for display
-  const hasSharp = sharpHome != null;
-  const hasSoft  = softHome != null;
-  const availableBooks = game.bookmakers.map(b=>b.key);
-
-  let sharp=null, s1=false, s2=false, lineDesc='', pubDesc='';
-  let diff = 0;
-  let openLine = curHome; // fallback if no sharp book
-
-  // ── SIGNAL 1: Pinnacle vs soft book divergence ─────────────────────────────
-  // If Pinnacle has a meaningfully different line than soft books,
-  // sharp money has moved Pinnacle but public books haven't caught up.
   if (hasSharp && hasSoft) {
     diff = roundHalf(sharpHome - softHome);
-    openLine = softHome; // soft book = "public line", sharp = where money went
-
+    openLine = softHome;
     if (Math.abs(diff) >= 0.5) {
       s1 = true;
-      // Pinnacle favoring away more than soft books (sharpHome is HIGHER = away is cheaper)
       sharp = diff > 0 ? game.away_team : game.home_team;
-      lineDesc = `Pinnacle ${fmtSpread(sharpHome)} vs soft books ${fmtSpread(softHome)} — ${Math.abs(diff).toFixed(1)} pt gap`;
+      lineDesc = 'Pinnacle ' + fmtSpread(sharpHome) + ' vs soft books ' + fmtSpread(softHome) + ' \u2014 ' + Math.abs(diff).toFixed(1) + ' pt gap';
     }
-  } else if (hasSharp && !hasSoft) {
-    // Only sharp book available — note it but can't compare
-    openLine = sharpHome;
-    pubDesc = `Only sharp book (Pinnacle) available — no soft book to compare`;
-  } else if (!hasSharp && hasSoft) {
-    // No Pinnacle — fall back to cross-book variance as weak signal
-    const allRounded = allSpreadsHome.map(s=>roundHalf(s));
-    const minLine = Math.min(...allRounded);
-    const maxLine = Math.max(...allRounded);
+  } else if (!hasSharp && hasSoft && allSpreads.length >= 2) {
+    var minLine = Math.min.apply(null, allSpreads);
+    var maxLine = Math.max.apply(null, allSpreads);
     diff = roundHalf(maxLine - minLine);
     openLine = softHome;
     if (diff >= 0.5) {
       s1 = true;
       sharp = maxLine > softHome ? game.away_team : game.home_team;
-      lineDesc = `Cross-book spread ${fmtSpread(minLine)}–${fmtSpread(maxLine)} (${diff.toFixed(1)} pt variance, no Pinnacle)`;
+      lineDesc = 'Cross-book spread ' + fmtSpread(minLine) + '\u2013' + fmtSpread(maxLine) + ' (' + diff.toFixed(1) + ' pt variance, no Pinnacle)';
     }
   }
 
-  // ── SIGNAL 2: Line moved against the public side ───────────────────────────
-  // Pinnacle moved AWAY from the public favorite = classic RLM
   if (s1 && hasSharp && hasSoft) {
-    // If soft books favor home (negative spread = home favored) but
-    // Pinnacle has moved LESS in favor of home (sharpHome > softHome), 
-    // that means sharp money is on away — confirming Signal 1
-    const softFavorsHome = softHome < 0;
-    const sharpDisagreesWithPublic = diff > 0; // sharp shifted toward away
-
-    if (softFavorsHome && sharpDisagreesWithPublic) {
-      s2 = true;
-      sharp = game.away_team;
-      pubDesc = `Public on ${game.home_team} (soft books ${fmtSpread(softHome)}) — Pinnacle at ${fmtSpread(sharpHome)} signals sharp money on ${game.away_team}`;
-    } else if (!softFavorsHome && !sharpDisagreesWithPublic) {
-      s2 = true;
-      sharp = game.home_team;
-      pubDesc = `Public on ${game.away_team} (soft books ${fmtSpread(softHome)}) — Pinnacle at ${fmtSpread(sharpHome)} signals sharp money on ${game.home_team}`;
+    var softFavorsHome = softHome < 0;
+    var sharpDisagrees = diff > 0;
+    if (softFavorsHome && sharpDisagrees) {
+      s2 = true; sharp = game.away_team;
+      pubDesc = 'Public on ' + game.home_team + ' (soft ' + fmtSpread(softHome) + ') \u2014 Pinnacle ' + fmtSpread(sharpHome) + ' signals sharp on ' + game.away_team;
+    } else if (!softFavorsHome && !sharpDisagrees) {
+      s2 = true; sharp = game.home_team;
+      pubDesc = 'Public on ' + game.away_team + ' (soft ' + fmtSpread(softHome) + ') \u2014 Pinnacle ' + fmtSpread(sharpHome) + ' signals sharp on ' + game.home_team;
     } else {
-      pubDesc = `Pinnacle ${fmtSpread(sharpHome)} · Soft books ${fmtSpread(softHome)}`;
+      pubDesc = 'Pinnacle ' + fmtSpread(sharpHome) + ' \u00b7 Soft books ' + fmtSpread(softHome);
     }
   } else if (!s1) {
-    const booksPresent = availableBooks.join(', ');
-    pubDesc = hasSharp
-      ? `Pinnacle ${fmtSpread(sharpHome)} aligns with soft books — no divergence`
-      : `No Pinnacle data (books: ${availableBooks.slice(0,3).join(', ')}${availableBooks.length>3?'…':''})`;
+    pubDesc = hasSharp ? 'Pinnacle ' + fmtSpread(sharpHome) + ' aligns with soft books \u2014 no divergence' : 'No Pinnacle data available';
   }
 
-  const strength = s1 && s2 ? 'strong' : s1 ? 'moderate' : 'watch';
-
+  var strength = (s1 && s2) ? 'strong' : s1 ? 'moderate' : 'watch';
   return {
-    homeTeam: game.home_team, awayTeam: game.away_team, commenceTime: game.commence_time,
-    curHome, curAway, openLine,
-    sharpHome, softHome, diff,
-    hasSharp, hasSoft,
-    sharp, s1, s2, strength, lineDesc, pubDesc, sport
+    homeTeam:game.home_team, awayTeam:game.away_team, commenceTime:game.commence_time,
+    curHome:curHome, curAway:curAway, openLine:openLine,
+    sharpHome:sharpHome, softHome:softHome, diff:diff,
+    hasSharp:hasSharp, hasSoft:hasSoft,
+    sharp:sharp, s1:s1, s2:s2, strength:strength, lineDesc:lineDesc, pubDesc:pubDesc, sport:sport
   };
 }
 
-// ─── RENDER CARD ──────────────────────────────────────────────────────────────
+// ─── RENDER CARD ─────────────────────────────────────────────────────────────
 function renderCard(g, idx, isNew) {
-  const isSH = g.sharp===g.homeTeam, isSA = g.sharp===g.awayTeam;
-  const badge = g.strength==='strong'?'🔥 Strong RLM':g.strength==='moderate'?'⚡ Moderate RLM':'— No RLM';
-  const signal = g.strength!=='watch' ? `
-    <div class="signal-row">
-      <span style="font-size:14px">${g.s1&&g.s2?'🎯':'📡'}</span>
-      <div class="signal-text">
-        ${g.lineDesc?`<strong>LINE:</strong> ${g.lineDesc}`:''}
-        ${g.lineDesc&&g.pubDesc?' &nbsp;|&nbsp; ':''}
-        ${g.pubDesc?`<strong>PUBLIC:</strong> ${g.pubDesc}`:''}
-      </div>
-      ${g.sharp?`<div class="sharp-tag">SHARP → ${g.sharp.split(' ').pop()}</div>`:''}
-    </div>` : '';
-  return `
-  <div class="game-card rlm-${g.strength}${isNew?' newly-flagged':''}" style="animation-delay:${idx*0.04}s">
-    <div class="card-header">
-      <span class="sport-badge">${sportLabel(g.sport)}</span>
-      ${isNew?'<span class="new-badge">NEW</span>':''}
-      <span class="game-time">${fmtTime(g.commenceTime)}</span>
-      <span class="rlm-badge ${g.strength}">${badge}</span>
-    </div>
-    <div class="card-body">
-      <div class="matchup">
-        <div class="team-row">
-          <span class="team-name${isSA?' sharp-side':''}">${g.awayTeam}</span>
-          <span class="spread" style="color:${isSA?'var(--accent)':'var(--text)'}">${fmtSpread(g.curAway)}</span>
-        </div>
-        <div class="vs-divider">@ &nbsp;VS</div>
-        <div class="team-row">
-          <span class="team-name${isSH?' sharp-side':''}">${g.homeTeam}</span>
-          <span class="spread" style="color:${isSH?'var(--accent)':'var(--text)'}">${fmtSpread(g.curHome)}</span>
-        </div>
-      </div>
-      <div class="metrics">
-        <div class="metric-box"><div class="metric-label">Pinnacle</div><div class="metric-value" style="color:${g.hasSharp?'var(--accent2)':'var(--muted)'}">${g.hasSharp?fmtSpread(g.sharpHome):'N/A'}</div></div>
-        <div class="metric-box"><div class="metric-label">Soft Books</div><div class="metric-value">${g.hasSoft?fmtSpread(g.softHome):'N/A'}</div></div>
-        <div class="metric-box"><div class="metric-label">Gap</div><div class="metric-value ${g.diff>0?'mv-neg':g.diff<0?'mv-pos':''}">${g.diff!==0?(g.diff>0?'+':'')+Math.abs(g.diff).toFixed(1)+'pt':'±0'}</div></div>
-        <div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:${g.sharp?'var(--accent)':'var(--muted)'}">${g.sharp?g.sharp.split(' ').pop().toUpperCase():'—'}</div></div>
-      </div>
-    </div>
-    ${signal}
-  </div>`;
+  var isSH = g.sharp === g.homeTeam, isSA = g.sharp === g.awayTeam;
+  var badge = g.strength === 'strong' ? '&#x1F525; Strong RLM' : g.strength === 'moderate' ? '&#x26A1; Moderate RLM' : '&mdash; No RLM';
+  var newBadge = isNew ? '<span class="new-badge">NEW</span>' : '';
+  var signal = g.strength !== 'watch' ? (
+    '<div class="signal-row">' +
+    '<span style="font-size:14px">' + (g.s1 && g.s2 ? '&#x1F3AF;' : '&#x1F4E1;') + '</span>' +
+    '<div class="signal-text">' +
+    (g.lineDesc ? '<strong>LINE:</strong> ' + g.lineDesc : '') +
+    (g.lineDesc && g.pubDesc ? ' &nbsp;|&nbsp; ' : '') +
+    (g.pubDesc ? '<strong>PUBLIC:</strong> ' + g.pubDesc : '') +
+    '</div>' +
+    (g.sharp ? '<div class="sharp-tag">SHARP &rarr; ' + g.sharp.split(' ').pop() + '</div>' : '') +
+    '</div>'
+  ) : '';
+
+  var spreadColorAway = isSA ? 'var(--accent)' : 'var(--text)';
+  var spreadColorHome = isSH ? 'var(--accent)' : 'var(--text)';
+  var diffClass = g.diff > 0 ? 'mv-neg' : g.diff < 0 ? 'mv-pos' : '';
+  var diffVal = g.diff !== 0 ? (g.diff > 0 ? '+' : '') + Math.abs(g.diff).toFixed(1) + 'pt' : '&#x00B10;0';
+  var sharpVal = g.sharp ? g.sharp.split(' ').pop().toUpperCase() : '&mdash;';
+  var sharpColor = g.sharp ? 'var(--accent)' : 'var(--muted)';
+  var pinnacleColor = g.hasSharp ? 'var(--accent2)' : 'var(--muted)';
+
+  return '<div class="game-card rlm-' + g.strength + (isNew ? ' newly-flagged' : '') + '" style="animation-delay:' + (idx * 0.04) + 's">' +
+    '<div class="card-header">' +
+    '<span class="sport-badge">' + sportLabel(g.sport) + '</span>' +
+    newBadge +
+    '<span class="game-time">' + fmtTime(g.commenceTime) + '</span>' +
+    '<span class="rlm-badge ' + g.strength + '">' + badge + '</span>' +
+    '</div>' +
+    '<div class="card-body">' +
+    '<div class="matchup">' +
+    '<div class="team-row"><span class="team-name' + (isSA ? ' sharp-side' : '') + '">' + g.awayTeam + '</span><span class="spread" style="color:' + spreadColorAway + '">' + fmtSpread(g.curAway) + '</span></div>' +
+    '<div class="vs-divider">@ &nbsp;VS</div>' +
+    '<div class="team-row"><span class="team-name' + (isSH ? ' sharp-side' : '') + '">' + g.homeTeam + '</span><span class="spread" style="color:' + spreadColorHome + '">' + fmtSpread(g.curHome) + '</span></div>' +
+    '</div>' +
+    '<div class="metrics">' +
+    '<div class="metric-box"><div class="metric-label">Pinnacle</div><div class="metric-value" style="color:' + pinnacleColor + '">' + (g.hasSharp ? fmtSpread(g.sharpHome) : 'N/A') + '</div></div>' +
+    '<div class="metric-box"><div class="metric-label">Soft Books</div><div class="metric-value">' + (g.hasSoft ? fmtSpread(g.softHome) : 'N/A') + '</div></div>' +
+    '<div class="metric-box"><div class="metric-label">Gap</div><div class="metric-value ' + diffClass + '">' + diffVal + '</div></div>' +
+    '<div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:' + sharpColor + '">' + sharpVal + '</div></div>' +
+    '</div>' +
+    '</div>' +
+    signal +
+    '</div>';
+}
+
+function renderNoOddsCard(ev, sport, idx) {
+  return '<div class="game-card rlm-watch" style="animation-delay:' + (idx * 0.04) + 's;opacity:0.55;">' +
+    '<div class="card-header">' +
+    '<span class="sport-badge">' + sportLabel(sport) + '</span>' +
+    '<span class="game-time">' + fmtTime(ev.commence_time) + '</span>' +
+    '<span class="rlm-badge watch">&#x26A0; No Odds Data</span>' +
+    '</div>' +
+    '<div class="card-body" style="align-items:center;">' +
+    '<div class="matchup">' +
+    '<div class="team-row"><span class="team-name" style="color:var(--muted)">' + ev.away_team + '</span></div>' +
+    '<div class="vs-divider">@ &nbsp;VS</div>' +
+    '<div class="team-row"><span class="team-name" style="color:var(--muted)">' + ev.home_team + '</span></div>' +
+    '</div>' +
+    '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;flex:1;">No spread odds from bookmakers at this time.</div>' +
+    '</div>' +
+    '</div>';
 }
 
 // ─── PUSHOVER ────────────────────────────────────────────────────────────────
-async function sendPushover(title, msg, priority=0) {
-  const token = document.getElementById('poAppToken').value.trim();
-  const user = document.getElementById('poUserKey').value.trim();
-  if (!token||!user) return {ok:false, reason:'Keys not set'};
+async function sendPushover(title, msg, priority) {
+  if (priority === undefined) priority = 0;
+  var token = document.getElementById('poAppToken').value.trim();
+  var user  = document.getElementById('poUserKey').value.trim();
+  if (!token || !user) return {ok:false, reason:'Keys not set'};
   try {
-    const fd = new FormData();
-    fd.append('token',token); fd.append('user',user);
-    fd.append('title',title); fd.append('message',msg);
-    fd.append('priority',priority);
-    if (priority>=2) { fd.append('retry','60'); fd.append('expire','3600'); }
-    const r = await fetch('https://api.pushover.net/1/messages.json',{method:'POST',body:fd});
-    const d = await r.json();
-    return {ok:d.status===1, reason:d.errors?.join(', ')||''};
-  } catch(e) { return {ok:false,reason:e.message}; }
+    var fd = new FormData();
+    fd.append('token', token); fd.append('user', user);
+    fd.append('title', title); fd.append('message', msg);
+    fd.append('priority', priority);
+    if (priority >= 2) { fd.append('retry', '60'); fd.append('expire', '3600'); }
+    var r = await fetch('https://api.pushover.net/1/messages.json', {method:'POST', body:fd});
+    var d = await r.json();
+    return {ok: d.status === 1, reason: (d.errors || []).join(', ')};
+  } catch(e) { return {ok:false, reason:e.message}; }
 }
 
 async function testPushover() {
-  const chip = document.getElementById('poChip');
-  chip.textContent='Sending…'; chip.className='po-chip off';
-  const r = await sendPushover('RLM Detector','✅ Pushover connected! You will receive alerts when RLMs are detected.',0);
-  chip.textContent = r.ok ? '✓ Connected' : 'Failed';
+  var chip = document.getElementById('poChip');
+  chip.textContent = 'Sending...'; chip.className = 'po-chip off';
+  var r = await sendPushover('RLM Detector', 'Pushover connected! Alerts will fire when RLMs are detected.', 0);
+  chip.textContent = r.ok ? 'Connected' : 'Failed';
   chip.className = r.ok ? 'po-chip ok' : 'po-chip off';
-  addLog(r.ok ? 'Pushover test ping sent.' : `Pushover test failed: ${r.reason}`, r.ok?'sent':'fail');
+  addLog(r.ok ? 'Pushover test ping sent.' : 'Pushover test failed: ' + r.reason, r.ok ? 'sent' : 'fail');
 }
 
-function addLog(msg, cls='') {
-  document.getElementById('notifLogWrap').style.display='block';
-  const log = document.getElementById('notifLog');
-  const el = document.createElement('div');
-  el.className=`notif-entry ${cls}`;
-  el.innerHTML=`<span class="nt">${nowStr()}</span><span class="nm">${msg}</span>`;
-  log.prepend(el);
-  while(log.children.length>60) log.removeChild(log.lastChild);
-}
-
-// ─── UNEVALUATED CARD ────────────────────────────────────────────────────────
-function renderUnevaluatedCard(ev, sport, idx) {
-  return `
-  <div class="game-card rlm-watch" style="animation-delay:${idx*0.04}s;opacity:0.55;">
-    <div class="card-header">
-      <span class="sport-badge">${sportLabel(sport)}</span>
-      <span class="game-time">${fmtTime(ev.commence_time)}</span>
-      <span class="rlm-badge watch" style="color:var(--muted);border-color:var(--border);">⚠ No Odds Data</span>
-    </div>
-    <div class="card-body" style="align-items:center;">
-      <div class="matchup">
-        <div class="team-row">
-          <span class="team-name" style="color:var(--muted);">${ev.away_team}</span>
-        </div>
-        <div class="vs-divider">@ &nbsp;VS</div>
-        <div class="team-row">
-          <span class="team-name" style="color:var(--muted);">${ev.home_team}</span>
-        </div>
-      </div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;flex:1;">
-        No spread odds available from bookmakers at this time — cannot evaluate for RLM.
-      </div>
-    </div>
-  </div>`;
-}
-
-// ─── CORE SCAN ───────────────────────────────────────────────────────────────
-async function runScan(isAuto=false) {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  const date = document.getElementById('scanDate').value;
-  const sports = [...document.querySelectorAll('.pill[data-sport].active')].map(p=>p.dataset.sport);
-  const alertLevels = [...document.querySelectorAll('.pill[data-alert].active')].map(p=>p.dataset.alert);
-
-  if (!apiKey) { setStatus('Please enter your Odds API key.','error'); return; }
-  if (!sports.length) { setStatus('Select at least one sport.','error'); return; }
-
-  const btn = document.getElementById('loadBtn');
-  if (btn) btn.disabled = true;
-  setStatus(`${isAuto?'[Auto] ':''}Scanning selected games…`,'loading');
-  if (!isAuto) { document.getElementById('results').innerHTML=''; document.getElementById('summaryBar').style.display='none'; }
-
-  // Games were pre-loaded via loadGames() — use watchlist to determine what to scan
-  const allOddsMap = {};
-  const errs = [];
-
-  if (watchlist.size === 0) {
-    setStatus('No games selected — use Step 2 to select games first.', 'error');
-    if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; } return;
-  }
-
-  // Get the watchlist events from allFetchedGames
-  const watchlistEvents = allFetchedGames.filter(ev =>
-    watchlist.has(ev.home_team + '||' + ev.away_team + '||' + ev.commence_time)
-  );
-
-  if (!watchlistEvents.length) {
-    setStatus('Watchlist games not found — reload games first.', 'error');
-    if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; } return;
-  }
-
-  // Group watchlist events by sport for efficient fetching
-  const bySport = {};
-  watchlistEvents.forEach(ev => {
-    if (!bySport[ev.sportKey]) bySport[ev.sportKey] = [];
-    bySport[ev.sportKey].push(ev);
-  });
-
-  // Fetch odds only for selected games — costs credits
-  for (const [sport, events] of Object.entries(bySport)) {
-    try {
-      setStatus(`${isAuto?'[Auto] ':''}Fetching odds — ${sportLabel(sport)} (${events.length} selected games)…`, 'loading');
-      const oddsMap = await fetchOddsForEvents(apiKey, sport, events);
-      Object.assign(allOddsMap, oddsMap);
-    } catch(e) {
-      errs.push(`${sportLabel(sport)}: ${e.message}`);
-    }
-  }
-
-  // allEvents for display = watchlist only
-  const allEvents = watchlistEvents;
-
-  // allFetchedGames already set by loadGames() — don't overwrite
-
-  if (errs.length && !allEvents.length) {
-    setStatus(`Error: ${errs[0]}`, 'error');
-    if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; } return;
-  }
-  if (!allEvents.length) {
-    setStatus(`No games found for ${date}.`, '');
-    document.getElementById('results').innerHTML=`<div class="empty-state"><span class="big">NO GAMES</span>No games found for this date.</div>`;
-    if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; } return;
-  }
-
-  // Split into: has odds vs no odds (all events are from watchlist)
-  const withOdds = allEvents.filter(ev => allOddsMap[ev.id]);
-  const noOdds   = allEvents.filter(ev => !allOddsMap[ev.id]);
-  const toScan   = withOdds;
-
-  // Analyze RLMs
-  let analyzed = toScan.map(ev => analyzeRLM(allOddsMap[ev.id], ev.sportKey)).filter(Boolean);
-  analyzed.sort((a,b) => ({strong:0, moderate:1, watch:2}[a.strength] - {strong:0, moderate:1, watch:2}[b.strength]));
-
-  // Find newly-detected RLMs
-  const newOnes = [];
-  for (const g of analyzed) {
-    const id = gameId(g);
-    if (g.strength!=='watch' && alertLevels.includes(g.strength) && !previousRLMs.has(id)) {
-      newOnes.push(g); previousRLMs.add(id);
-    }
-  }
-
-  // Send Pushover for new RLMs
-  for (const g of newOnes) {
-    const priority = g.strength==='strong' ? 1 : 0;
-    const title = g.strength==='strong' ? '🔥 Strong RLM' : '⚡ Moderate RLM';
-    const sharpName = g.sharp ? g.sharp.split(' ').pop() : '?';
-    const msg = `${g.awayTeam} @ ${g.homeTeam}\nSharp side: ${sharpName} | Spread: ${fmtSpread(g.curHome)}\n${g.lineDesc||g.pubDesc}`;
-    const r = await sendPushover(title, msg, priority);
-    addLog(`${r.ok?'📲 Sent':'❌ Failed'} — ${g.awayTeam} @ ${g.homeTeam} (${g.strength})${!r.ok?': '+r.reason:''}`, r.ok?'sent':'fail');
-  }
-
-  // Render: RLM cards first, then no-odds cards at the bottom
-  const strong   = analyzed.filter(g=>g.strength==='strong').length;
-  const moderate = analyzed.filter(g=>g.strength==='moderate').length;
-
-  document.getElementById('sumStrong').textContent = strong;
-  document.getElementById('sumModerate').textContent = moderate;
-  document.getElementById('sumTotal').textContent = allEvents.length;
-  document.getElementById('summaryBar').style.display = 'flex';
-  document.getElementById('lastScanInfo').innerHTML =
-    `Last scan: ${nowStr()}<br>${allEvents.length} total · ${withOdds.length} evaluated · ${noOdds.length} no odds`;
-
-  const rlmCards = analyzed.map((g,i) => renderCard(g, i, newOnes.includes(g))).join('');
-  const noOddsCards = noOdds.map((ev,i) => renderUnevaluatedCard(ev, ev.sportKey, analyzed.length + i)).join('');
-
-  // Section divider if there are unevaluated games
-  const divider = noOdds.length > 0 ? `
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;
-      padding:12px 0 8px;border-top:1px solid var(--border);margin-top:8px;">
-      ⚠ ${noOdds.length} game(s) found but not evaluated — no bookmaker odds available
-    </div>` : '';
-
-  document.getElementById('results').innerHTML = rlmCards + divider + noOddsCards;
-
-  const wlNote  = watchlist.size>0 ? ` · ${watchlist.size}-game watchlist` : '';
-  const errNote = errs.length ? ` · ${errs.length} sport error(s)` : '';
-  const newNote = newOnes.length ? ` · 📲 ${newOnes.length} alert(s) sent` : '';
-  const noOddsNote = noOdds.length ? ` · ${noOdds.length} no odds` : '';
-  setStatus(`${isAuto?'[Auto] ':''}Scan complete — ${allEvents.length} games (${withOdds.length} evaluated${noOddsNote})${wlNote} · ${strong} strong · ${moderate} moderate RLMs${newNote}${errNote}`, '');
-
-  scanCount++;
-  document.getElementById('scanCountEl').textContent = scanCount;
-  document.getElementById('lastScanEl').textContent = nowStr();
-  if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; }
-}
-
-// ─── LOAD GAMES (Step 1 — free, no odds cost) ────────────────────────────────
+// ─── STEP 1: LOAD GAMES ──────────────────────────────────────────────────────
 async function loadGames() {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  const date = document.getElementById('scanDate').value;
-  const sports = [...document.querySelectorAll('.pill[data-sport].active')].map(p=>p.dataset.sport);
+  var apiKey = document.getElementById('apiKey').value.trim();
+  var date   = document.getElementById('scanDate').value;
+  var sports = [];
+  document.querySelectorAll('.pill[data-sport].active').forEach(function(p) { sports.push(p.dataset.sport); });
 
-  if (!apiKey) { setStatus('Please enter your Odds API key.','error'); return; }
-  if (!sports.length) { setStatus('Select at least one sport.','error'); return; }
+  if (!apiKey) { setStatus('Please enter your Odds API key.', 'error'); return; }
+  if (!sports.length) { setStatus('Select at least one sport.', 'error'); return; }
 
-  const btn = document.getElementById('loadBtn');
-  btn.disabled = true; btn.textContent = '⏳ Loading…';
-  setStatus(`Fetching today's schedule (free — no credits used)…`, 'loading');
+  var btn = document.getElementById('loadBtn');
+  btn.disabled = true; btn.textContent = 'Loading...';
+  setStatus('Fetching schedule (no credits used)...', 'loading');
 
-  const allEvents = [];
-  const sportEventMap = {};
+  var allEvents = [];
+  var sportEventMap = {};
+  var loadErrors = [];
 
-  const loadErrors = [];
-  await Promise.all(sports.map(async sport => {
+  for (var si = 0; si < sports.length; si++) {
+    var sport = sports[si];
     try {
-      const events = await fetchEventsForSport(apiKey, sport, date);
+      var events = await fetchEventsForSport(apiKey, sport, date);
       sportEventMap[sport] = events;
-      events.forEach(ev => allEvents.push({ ...ev, sportKey: sport }));
+      events.forEach(function(ev) { allEvents.push(Object.assign({}, ev, {sportKey: sport})); });
     } catch(e) {
-      loadErrors.push(`${sportLabel(sport)}: ${e.message}`);
+      loadErrors.push(sportLabel(sport) + ': ' + e.message);
       sportEventMap[sport] = [];
     }
-  }));
+  }
 
-  if (loadErrors.length) {
-    // Show first error prominently — likely invalid API key or network issue
-    setStatus(`Error loading games: ${loadErrors[0]}`, 'error');
-    btn.disabled = false; btn.textContent = '⬇ Load Games';
-    if (loadErrors[0].includes('401') || loadErrors[0].includes('invalid') || loadErrors[0].includes('key')) {
-      document.getElementById('apiKey').style.borderColor = 'var(--accent2)';
-    }
+  btn.disabled = false; btn.textContent = 'Load Games';
+
+  if (loadErrors.length && !allEvents.length) {
+    setStatus('Error: ' + loadErrors[0], 'error');
     return;
   }
 
   allFetchedGames = allEvents;
 
-  const activeSports = sports.filter(s => sportEventMap[s]?.length > 0);
-  const skippedSports = sports.filter(s => !sportEventMap[s]?.length);
-
   // Update pill visuals
-  sports.forEach(sport => {
-    const pill = document.querySelector(`.pill[data-sport="${sport}"]`);
+  sports.forEach(function(sport) {
+    var pill = document.querySelector('.pill[data-sport="' + sport + '"]');
     if (!pill) return;
-    if (skippedSports.includes(sport)) {
-      pill.style.opacity = '0.4';
-      pill.title = 'No games today';
+    if (!sportEventMap[sport] || !sportEventMap[sport].length) {
+      pill.style.opacity = '0.4'; pill.title = 'No games today';
     } else {
-      pill.style.opacity = '';
-      pill.title = `${sportEventMap[sport].length} game(s) today`;
+      pill.style.opacity = ''; pill.title = sportEventMap[sport].length + ' game(s) today';
     }
   });
 
-  btn.disabled = false; btn.textContent = '⬇ Load Games';
-
   if (!allEvents.length) {
-    setStatus(`No games found for ${date}.`, '');
+    setStatus('No games found for ' + date + '.', '');
     return;
   }
 
-  // Unlock step 2
+  // Unlock Step 2
   document.getElementById('pickBtn').disabled = false;
-  document.getElementById('step2Badge').style.background = 'var(--gold)';
-  document.getElementById('step2Badge').style.color = 'var(--bg)';
-  document.getElementById('step2Badge').style.border = 'none';
+  document.getElementById('badge1').className = 'step-badge done-1';
 
-  const breakdown = activeSports.map(s => `${sportLabel(s)}: ${sportEventMap[s].length}`).join(' · ');
-  setStatus(`✓ ${allEvents.length} games loaded — ${breakdown}. Now select which games to monitor.`, '');
-  addLog(`Loaded ${allEvents.length} games across ${activeSports.length} sport(s). ${skippedSports.length} sport(s) have no games today.`);
+  var activeSports = sports.filter(function(s) { return sportEventMap[s] && sportEventMap[s].length > 0; });
+  var breakdown = activeSports.map(function(s) { return sportLabel(s) + ': ' + sportEventMap[s].length; }).join(' \u00b7 ');
+  setStatus(allEvents.length + ' games loaded \u2014 ' + breakdown + '. Now select games to watch.', '');
+  addLog('Loaded ' + allEvents.length + ' games. ' + (loadErrors.length ? loadErrors.length + ' sport(s) had errors.' : ''));
 }
 
-// ─── AUTO SCAN ────────────────────────────────────────────────────────────────
+// ─── STEP 3: SCAN ────────────────────────────────────────────────────────────
+async function runScan(isAuto) {
+  if (isAuto === undefined) isAuto = false;
+  var apiKey = document.getElementById('apiKey').value.trim();
+  var alertLevels = [];
+  document.querySelectorAll('.pill[data-alert].active').forEach(function(p) { alertLevels.push(p.dataset.alert); });
+
+  if (!apiKey) { setStatus('Please enter your Odds API key.', 'error'); return; }
+  if (watchlist.size === 0) { setStatus('No games selected. Use Step 2 to select games first.', 'error'); return; }
+
+  setStatus((isAuto ? '[Auto] ' : '') + 'Scanning ' + watchlist.size + ' selected game(s)...', 'loading');
+  if (!isAuto) { document.getElementById('results').innerHTML = ''; document.getElementById('summaryBar').style.display = 'none'; }
+
+  // Get watchlist events from allFetchedGames
+  var watchlistEvents = allFetchedGames.filter(function(ev) {
+    return watchlist.has(ev.home_team + '||' + ev.away_team + '||' + ev.commence_time);
+  });
+
+  if (!watchlistEvents.length) {
+    setStatus('Watchlist games not found. Click Load Games to refresh.', 'error');
+    return;
+  }
+
+  // Group by sport
+  var bySport = {};
+  watchlistEvents.forEach(function(ev) {
+    if (!bySport[ev.sportKey]) bySport[ev.sportKey] = [];
+    bySport[ev.sportKey].push(ev);
+  });
+
+  var allOddsMap = {};
+  var errs = [];
+  var sportKeys = Object.keys(bySport);
+  for (var si = 0; si < sportKeys.length; si++) {
+    var sport = sportKeys[si];
+    try {
+      setStatus((isAuto ? '[Auto] ' : '') + 'Fetching odds \u2014 ' + sportLabel(sport) + ' (' + bySport[sport].length + ' games)...', 'loading');
+      var oddsMap = await fetchOddsForEvents(apiKey, sport, bySport[sport]);
+      Object.assign(allOddsMap, oddsMap);
+    } catch(e) { errs.push(sportLabel(sport) + ': ' + e.message); }
+  }
+
+  var withOdds = watchlistEvents.filter(function(ev) { return allOddsMap[ev.id]; });
+  var noOdds   = watchlistEvents.filter(function(ev) { return !allOddsMap[ev.id]; });
+
+  var analyzed = withOdds.map(function(ev) { return analyzeRLM(allOddsMap[ev.id], ev.sportKey); }).filter(Boolean);
+  analyzed.sort(function(a,b) {
+    var o = {strong:0,moderate:1,watch:2};
+    return o[a.strength] - o[b.strength];
+  });
+
+  // Find new RLMs
+  var newOnes = [];
+  analyzed.forEach(function(g) {
+    var id = gameId(g);
+    if (g.strength !== 'watch' && alertLevels.indexOf(g.strength) !== -1 && !previousRLMs.has(id)) {
+      newOnes.push(g); previousRLMs.add(id);
+    }
+  });
+
+  // Send Pushover
+  for (var ni = 0; ni < newOnes.length; ni++) {
+    var g = newOnes[ni];
+    var priority = g.strength === 'strong' ? 1 : 0;
+    var title = g.strength === 'strong' ? 'Strong RLM Detected' : 'Moderate RLM Detected';
+    var sharpName = g.sharp ? g.sharp.split(' ').pop() : '?';
+    var msg = g.awayTeam + ' @ ' + g.homeTeam + '\nSharp side: ' + sharpName + ' | Spread: ' + fmtSpread(g.curHome) + '\n' + (g.lineDesc || g.pubDesc);
+    var pr = await sendPushover(title, msg, priority);
+    addLog((pr.ok ? 'Sent' : 'Failed') + ' \u2014 ' + g.awayTeam + ' @ ' + g.homeTeam + ' (' + g.strength + ')' + (!pr.ok ? ': ' + pr.reason : ''), pr.ok ? 'sent' : 'fail');
+  }
+
+  var strong   = analyzed.filter(function(g){return g.strength==='strong';}).length;
+  var moderate = analyzed.filter(function(g){return g.strength==='moderate';}).length;
+  document.getElementById('sumStrong').textContent   = strong;
+  document.getElementById('sumModerate').textContent = moderate;
+  document.getElementById('sumTotal').textContent    = watchlistEvents.length;
+  document.getElementById('summaryBar').style.display = 'flex';
+  document.getElementById('lastScanInfo').innerHTML = 'Last scan: ' + nowStr() + '<br>' + withOdds.length + ' evaluated &middot; ' + noOdds.length + ' no odds';
+
+  var rlmHtml = analyzed.map(function(g,i) { return renderCard(g, i, newOnes.indexOf(g) !== -1); }).join('');
+  var divider = noOdds.length > 0 ? '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;padding:12px 0 8px;border-top:1px solid var(--border);margin-top:8px;">&#x26A0; ' + noOdds.length + ' game(s) \u2014 no odds available</div>' : '';
+  var noOddsHtml = noOdds.map(function(ev,i) { return renderNoOddsCard(ev, ev.sportKey, analyzed.length + i); }).join('');
+  document.getElementById('results').innerHTML = rlmHtml + divider + noOddsHtml;
+
+  var prefix = isAuto ? '[Auto] ' : '';
+  var newNote = newOnes.length ? ' \u00b7 ' + newOnes.length + ' alert(s) sent' : '';
+  var errNote = errs.length ? ' \u00b7 ' + errs.length + ' error(s)' : '';
+  setStatus(prefix + 'Scan complete \u2014 ' + watchlistEvents.length + ' games \u00b7 ' + strong + ' strong \u00b7 ' + moderate + ' moderate' + newNote + errNote, '');
+
+  scanCount++;
+  document.getElementById('scanCountEl').textContent = scanCount;
+  document.getElementById('lastScanEl').textContent  = nowStr();
+}
+
+// ─── AUTO SCAN ───────────────────────────────────────────────────────────────
 function startAutoScan() {
-  if (!document.getElementById('apiKey').value.trim()) { setStatus('Enter your API key first.','error'); return; }
-  if (watchlist.size === 0) { setStatus('Step 2 — Select at least one game to monitor before starting.','error'); return; }
-  const mins = parseInt(document.getElementById('scanInterval').value)||30;
-  const ms = mins*60*1000;
-  document.getElementById('startBtn').style.display='none';
-  document.getElementById('stopBtn').style.display='';
+  if (!document.getElementById('apiKey').value.trim()) { setStatus('Enter your API key first.', 'error'); return; }
+  if (watchlist.size === 0) { setStatus('Select games first (Step 2).', 'error'); return; }
+  var mins = parseInt(document.getElementById('scanInterval').value) || 30;
+  var ms = mins * 60 * 1000;
+  document.getElementById('startBtn').style.display = 'none';
+  document.getElementById('stopBtn').style.display  = '';
   document.getElementById('autoscanBar').classList.add('active');
   runScan(true);
-  nextScanAt = Date.now()+ms;
-  autoTimer = setInterval(()=>{ runScan(true); nextScanAt=Date.now()+ms; }, ms);
+  nextScanAt = Date.now() + ms;
+  autoTimer = setInterval(function() { runScan(true); nextScanAt = Date.now() + ms; }, ms);
   countdownTimer = setInterval(tickCountdown, 1000);
-  addLog(`Auto-scan started — every ${mins} min.`);
+  addLog('Auto-scan started \u2014 every ' + mins + ' min.');
 }
 
 function stopAutoScan() {
   clearInterval(autoTimer); clearInterval(countdownTimer);
-  autoTimer=null; countdownTimer=null; nextScanAt=null;
-  document.getElementById('startBtn').style.display='';
-  document.getElementById('stopBtn').style.display='none';
+  autoTimer = null; countdownTimer = null; nextScanAt = null;
+  document.getElementById('startBtn').style.display = '';
+  document.getElementById('stopBtn').style.display  = 'none';
   document.getElementById('autoscanBar').classList.remove('active');
-  document.getElementById('countdownEl').textContent='—';
+  document.getElementById('countdownEl').textContent = '\u2014';
   addLog('Auto-scan stopped.');
 }
 
 function tickCountdown() {
   if (!nextScanAt) return;
-  const d = Math.max(0, nextScanAt-Date.now());
-  const m=Math.floor(d/60000), s=Math.floor((d%60000)/1000);
-  document.getElementById('countdownEl').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  var d = Math.max(0, nextScanAt - Date.now());
+  var m = Math.floor(d / 60000), s = Math.floor((d % 60000) / 1000);
+  document.getElementById('countdownEl').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
 }
 
-// ─── GAME PICKER ──────────────────────────────────────────────────────────────
+// ─── GAME PICKER ─────────────────────────────────────────────────────────────
 function openPicker() {
   pickerTemp = new Set(watchlist);
   renderPicker();
@@ -933,151 +837,143 @@ function openPicker() {
 function closePicker() { document.getElementById('pickerModal').classList.remove('open'); }
 
 function renderPicker() {
-  const body = document.getElementById('pickerBody');
-  if (!allFetchedGames.length) { body.innerHTML='<div class="picker-loading">No games loaded. Run a scan first.</div>'; return; }
-
-  const bySport={};
-  allFetchedGames.forEach(g=>{ if(!bySport[g.sportKey])bySport[g.sportKey]=[]; bySport[g.sportKey].push(g); });
-
-  let html=`<div class="picker-controls">
-    <button class="picker-ctrl-btn" onclick="pickerAll()">Select All</button>
-    <button class="picker-ctrl-btn" onclick="pickerNone()">Clear All</button>
-  </div>`;
-
-  for (const [sport, games] of Object.entries(bySport)) {
-    html+=`<div class="picker-sport-header">${sportLabel(sport)} — ${games.length} game(s)</div>`;
-    games.forEach(g=>{
-      const id=gameIdRaw(g), sel=pickerTemp.has(id);
-      html+=`<div class="picker-game${sel?' selected':''}" onclick="togglePick('${id}',this)">
-        <input type="checkbox"${sel?' checked':''} onclick="event.stopPropagation();togglePick('${id}',this.closest('.picker-game'))">
-        <span class="picker-game-name">${g.away_team} @ ${g.home_team}</span>
-        <span class="picker-game-time">${fmtTime(g.commence_time)}</span>
-      </div>`;
-    });
+  var body = document.getElementById('pickerBody');
+  if (!allFetchedGames.length) {
+    body.innerHTML = '<div class="picker-loading">No games loaded. Complete Step 1 first.</div>';
+    return;
   }
-  body.innerHTML=html;
+  var bySport = {};
+  allFetchedGames.forEach(function(g) {
+    if (!bySport[g.sportKey]) bySport[g.sportKey] = [];
+    bySport[g.sportKey].push(g);
+  });
+  var html = '<div class="picker-controls"><button class="picker-ctrl-btn" onclick="pickerAll()">Select All</button><button class="picker-ctrl-btn" onclick="pickerNone()">Clear All</button></div>';
+  Object.keys(bySport).forEach(function(sport) {
+    html += '<div class="picker-sport-header">' + sportLabel(sport) + ' \u2014 ' + bySport[sport].length + ' game(s)</div>';
+    bySport[sport].forEach(function(g) {
+      var id  = g.home_team + '||' + g.away_team + '||' + g.commence_time;
+      var sel = pickerTemp.has(id);
+      html += '<div class="picker-game' + (sel ? ' selected' : '') + '" onclick="togglePick(\'' + id.replace(/'/g,"\\'") + '\',this)">' +
+        '<input type="checkbox"' + (sel ? ' checked' : '') + ' onclick="event.stopPropagation();togglePick(\'' + id.replace(/'/g,"\\'") + '\',this.closest(\'.picker-game\'))">' +
+        '<span class="picker-game-name">' + g.away_team + ' @ ' + g.home_team + '</span>' +
+        '<span class="picker-game-time">' + fmtTime(g.commence_time) + '</span>' +
+        '</div>';
+    });
+  });
+  body.innerHTML = html;
   updatePickerSub();
 }
 
 function togglePick(id, el) {
-  if (pickerTemp.has(id)) { pickerTemp.delete(id); el.classList.remove('selected'); el.querySelector('input').checked=false; }
-  else { pickerTemp.add(id); el.classList.add('selected'); el.querySelector('input').checked=true; }
+  if (pickerTemp.has(id)) { pickerTemp.delete(id); el.classList.remove('selected'); el.querySelector('input').checked = false; }
+  else { pickerTemp.add(id); el.classList.add('selected'); el.querySelector('input').checked = true; }
   updatePickerSub();
 }
-function pickerAll() { allFetchedGames.forEach(g=>pickerTemp.add(gameIdRaw(g))); renderPicker(); }
+function pickerAll()  { allFetchedGames.forEach(function(g) { pickerTemp.add(g.home_team+'||'+g.away_team+'||'+g.commence_time); }); renderPicker(); }
 function pickerNone() { pickerTemp.clear(); renderPicker(); }
 function updatePickerSub() {
-  document.getElementById('pickerSubtitle').textContent = pickerTemp.size===0 ? 'No games selected — select at least one' : `${pickerTemp.size} game(s) selected`;
+  document.getElementById('pickerSubtitle').textContent = pickerTemp.size === 0 ? 'No games selected' : pickerTemp.size + ' game(s) selected';
 }
 
 function saveWatchlist() {
   watchlist = new Set(pickerTemp);
   previousRLMs.clear();
   closePicker();
-
-  const pickBtn = document.getElementById('pickBtn');
-  const chip = document.getElementById('watchlistChip');
-  const startBtn = document.getElementById('startBtn');
-  const step3Badge = document.getElementById('step3Badge');
-
+  var chip  = document.getElementById('watchlistChip');
+  var start = document.getElementById('startBtn');
   if (watchlist.size > 0) {
-    pickBtn.textContent = '🎯 Games Selected';
-    pickBtn.style.color = 'var(--gold)';
-    pickBtn.style.borderColor = 'var(--gold)';
-    chip.textContent = `${watchlist.size} game${watchlist.size>1?'s':''} selected`;
+    document.getElementById('pickBtn').textContent  = 'Games Selected';
+    document.getElementById('pickBtn').style.color  = 'var(--gold)';
+    document.getElementById('pickBtn').style.borderColor = 'var(--gold)';
+    chip.textContent = watchlist.size + ' game' + (watchlist.size > 1 ? 's' : '') + ' selected';
     chip.style.display = '';
-
-    // Unlock step 3
-    startBtn.disabled = false;
-    step3Badge.style.background = 'var(--green)';
-    step3Badge.style.color = 'var(--bg)';
-    step3Badge.style.border = 'none';
-
-    setStatus(`✓ ${watchlist.size} game(s) selected. Click Start Auto-Scan to begin monitoring.`, '');
-    addLog(`Watchlist saved — ${watchlist.size} game(s) selected.`);
+    start.disabled = false;
+    document.getElementById('badge2').className = 'step-badge done-2';
+    document.getElementById('badge3').className = 'step-badge done-3';
+    setStatus(watchlist.size + ' game(s) selected. Click Start Auto-Scan to begin.', '');
+    addLog('Watchlist saved \u2014 ' + watchlist.size + ' game(s) selected.');
   } else {
-    pickBtn.textContent = '🎯 Select Games';
-    pickBtn.style.color = ''; pickBtn.style.borderColor = '';
+    document.getElementById('pickBtn').textContent = 'Select Games';
+    document.getElementById('pickBtn').style.color = '';
+    document.getElementById('pickBtn').style.borderColor = '';
     chip.style.display = 'none';
-    startBtn.disabled = true;
-    step3Badge.style.background = 'var(--surface2)';
-    step3Badge.style.color = 'var(--muted)';
-    step3Badge.style.border = '1px solid var(--border)';
-    setStatus('No games selected — please select at least one game to monitor.', '');
+    start.disabled = true;
+    document.getElementById('badge2').className = 'step-badge';
+    document.getElementById('badge3').className = 'step-badge';
+    setStatus('No games selected.', '');
     addLog('Watchlist cleared.');
   }
+  saveSettings();
 }
 
-// Close modal on backdrop click
-document.getElementById('pickerModal').addEventListener('click', e=>{ if(e.target===document.getElementById('pickerModal')) closePicker(); });
-document.getElementById('apiKey').addEventListener('keydown', e=>{ if(e.key==='Enter') loadGames(); });
-
-// ─── LOCAL STORAGE PERSISTENCE ───────────────────────────────────────────────
-const STORAGE_KEY = 'rlmdetector_settings';
+// ─── PERSISTENCE ─────────────────────────────────────────────────────────────
+var STORAGE_KEY = 'rlmdetector_v3';
 
 function saveSettings() {
   try {
-    const settings = {
-      apiKey: document.getElementById('apiKey').value,
-      poUserKey: document.getElementById('poUserKey').value,
-      poAppToken: document.getElementById('poAppToken').value,
+    var activeSports = [], alertLevels = [];
+    document.querySelectorAll('.pill[data-sport].active').forEach(function(p) { activeSports.push(p.dataset.sport); });
+    document.querySelectorAll('.pill[data-alert].active').forEach(function(p) { alertLevels.push(p.dataset.alert); });
+    var s = {
+      apiKey:       document.getElementById('apiKey').value,
+      poUserKey:    document.getElementById('poUserKey').value,
+      poAppToken:   document.getElementById('poAppToken').value,
       scanInterval: document.getElementById('scanInterval').value,
-      scanDate: document.getElementById('scanDate').value,
-      activeSports: [...document.querySelectorAll('.pill[data-sport].active')].map(p=>p.dataset.sport),
-      alertLevels: [...document.querySelectorAll('.pill[data-alert].active')].map(p=>p.dataset.alert),
+      scanDate:     document.getElementById('scanDate').value,
+      activeSports: activeSports,
+      alertLevels:  alertLevels
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  } catch(e) { /* storage unavailable */ }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  } catch(e) {}
 }
 
 function loadSettings() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    var raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
-    const s = JSON.parse(raw);
-    if (s.apiKey) document.getElementById('apiKey').value = s.apiKey;
-    if (s.poUserKey) document.getElementById('poUserKey').value = s.poUserKey;
-    if (s.poAppToken) document.getElementById('poAppToken').value = s.poAppToken;
+    var s = JSON.parse(raw);
+    if (s.apiKey)       document.getElementById('apiKey').value       = s.apiKey;
+    if (s.poUserKey)    document.getElementById('poUserKey').value    = s.poUserKey;
+    if (s.poAppToken)   document.getElementById('poAppToken').value   = s.poAppToken;
     if (s.scanInterval) document.getElementById('scanInterval').value = s.scanInterval;
-    if (s.scanDate) document.getElementById('scanDate').value = s.scanDate;
-    if (s.activeSports?.length) {
-      document.querySelectorAll('.pill[data-sport]').forEach(p => {
-        p.classList.toggle('active', s.activeSports.includes(p.dataset.sport));
+    if (s.scanDate)     document.getElementById('scanDate').value     = s.scanDate;
+    if (s.activeSports && s.activeSports.length) {
+      document.querySelectorAll('.pill[data-sport]').forEach(function(p) {
+        p.classList.toggle('active', s.activeSports.indexOf(p.dataset.sport) !== -1);
       });
     }
-    if (s.alertLevels?.length) {
-      document.querySelectorAll('.pill[data-alert]').forEach(p => {
-        p.classList.toggle('active', s.alertLevels.includes(p.dataset.alert));
+    if (s.alertLevels && s.alertLevels.length) {
+      document.querySelectorAll('.pill[data-alert]').forEach(function(p) {
+        p.classList.toggle('active', s.alertLevels.indexOf(p.dataset.alert) !== -1);
       });
     }
-    // Show saved indicator if keys exist
-    if (s.apiKey || s.poUserKey) {
-      setStatus('✓ Settings restored from last session.', '');
-      setTimeout(()=>setStatus('Step 1 — Enter your API key and click Load Games to fetch today’s schedule.',''), 3000);
-    }
-  } catch(e) { /* storage unavailable */ }
+    if (s.apiKey || s.poUserKey) setStatus('Settings restored from last session.', '');
+  } catch(e) {}
 }
 
 function clearSettings() {
-  if (!confirm('Clear all saved settings (API keys, Pushover keys, preferences)?')) return;
+  if (!confirm('Clear all saved settings?')) return;
   try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-  document.getElementById('apiKey').value='';
-  document.getElementById('poUserKey').value='';
-  document.getElementById('poAppToken').value='';
-  document.getElementById('scanInterval').value='30';
-  document.getElementById('poChip').textContent='Not configured';
-  document.getElementById('poChip').className='po-chip off';
+  document.getElementById('apiKey').value       = '';
+  document.getElementById('poUserKey').value    = '';
+  document.getElementById('poAppToken').value   = '';
+  document.getElementById('scanInterval').value = '30';
+  document.getElementById('poChip').textContent = 'Not configured';
+  document.getElementById('poChip').className   = 'po-chip off';
   addLog('All saved settings cleared.');
 }
 
-// Auto-save on any input change
-['apiKey','poUserKey','poAppToken','scanInterval','scanDate'].forEach(id => {
+['apiKey','poUserKey','poAppToken','scanInterval','scanDate'].forEach(function(id) {
   document.getElementById(id).addEventListener('input', saveSettings);
 });
-// Save when pills are toggled
-document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', ()=>setTimeout(saveSettings,50)));
+document.querySelectorAll('.pill').forEach(function(p) {
+  p.addEventListener('click', function() { setTimeout(saveSettings, 50); });
+});
+document.getElementById('pickerModal').addEventListener('click', function(e) {
+  if (e.target === document.getElementById('pickerModal')) closePicker();
+});
 
-// Load on startup
+// Load saved settings on startup
 loadSettings();
 </script>
 
