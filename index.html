@@ -713,7 +713,7 @@ async function runScan(isAuto=false) {
 
   // Get the watchlist events from allFetchedGames
   const watchlistEvents = allFetchedGames.filter(ev =>
-    watchlist.has(`${ev.home_team}||${ev.away_team}||${ev.commence_time}`)
+    watchlist.has(ev.home_team + '||' + ev.away_team + '||' + ev.commence_time)
   );
 
   if (!watchlistEvents.length) {
@@ -1053,7 +1053,7 @@ function loadSettings() {
     // Show saved indicator if keys exist
     if (s.apiKey || s.poUserKey) {
       setStatus('✓ Settings restored from last session.', '');
-      setTimeout(()=>setStatus('Step 1 — Enter your API key and click Load Games to fetch today's schedule.',''), 3000);
+      setTimeout(()=>setStatus('Step 1 — Enter your API key and click Load Games to fetch today’s schedule.',''), 3000);
     }
   } catch(e) { /* storage unavailable */ }
 }
