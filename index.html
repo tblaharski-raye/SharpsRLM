@@ -361,11 +361,20 @@ const gameIdRaw = g => `${g.home_team}||${g.away_team}||${g.commence_time}`;
 function setStatus(msg, cls='') { const el=document.getElementById('status'); el.textContent=msg; el.className=cls; }
 
 // ─── API ──────────────────────────────────────────────────────────────────────
-async function fetchOdds(apiKey, sport) {
-  const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american`;
-  const r = await fetch(url);
-  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.message||`HTTP ${r.status}`); }
-  return r.json();
+async function fetchOdds(apiKey, sport, date) {
+  // Step 1: get ALL event IDs for this sport on this date (bypasses major-book filter)
+  const evUrl = `https://api.the-odds-api.com/v4/sports/${sport}/events?apiKey=${apiKey}&commenceTimeFrom=${date}T00:00:00Z&commenceTimeTo=${date}T23:59:59Z`;
+  const evResp = await fetch(evUrl);
+  if (!evResp.ok) { const e = await evResp.json().catch(()=>({})); throw new Error(e.message||`HTTP ${evResp.status}`); }
+  const events = await evResp.json();
+  if (!events.length) return [];
+
+  // Step 2: fetch odds for all those IDs in one call
+  const ids = events.map(e => e.id).join(',');
+  const oddsUrl = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american&eventIds=${ids}`;
+  const oddsResp = await fetch(oddsUrl);
+  if (!oddsResp.ok) { const e = await oddsResp.json().catch(()=>({})); throw new Error(e.message||`HTTP ${oddsResp.status}`); }
+  return oddsResp.json();
 }
 
 // ─── RLM ANALYSIS ─────────────────────────────────────────────────────────────
@@ -515,9 +524,9 @@ async function runScan(isAuto=false) {
   const raw=[], errs=[];
   for (const sport of sports) {
     try {
-      const data = await fetchOdds(apiKey, sport);
+      const data = await fetchOdds(apiKey, sport, date);
       if (Array.isArray(data)) {
-        data.filter(g=>g.commence_time?.split('T')[0]===date).forEach(g=>raw.push({...g,sportKey:sport}));
+        data.forEach(g=>raw.push({...g,sportKey:sport}));
       }
     } catch(e) { errs.push(`${sportLabel(sport)}: ${e.message}`); }
   }
