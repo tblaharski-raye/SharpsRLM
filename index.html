@@ -193,7 +193,7 @@ footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border)
   <header>
     <div class="logo-eyebrow">// sharp money scanner v2</div>
     <div class="logo">RLM<span>.</span>DETECT</div>
-    <div class="logo-sub">auto-scan · pushover alerts · game watchlist · all major sports</div>
+    <div class="logo-sub">load games · select watchlist · auto-scan · pushover alerts</div>
   </header>
 
   <!-- CONFIG -->
@@ -252,13 +252,37 @@ footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border)
   <div class="pill active" data-alert="moderate">⚡ Moderate RLM</div>
 </div>
 
-<!-- Action buttons -->
-<div class="config-row" style="gap:10px;">
-  <button class="btn btn-primary" id="scanBtn" onclick="manualScan()">⚡ Scan Now</button>
-  <button class="btn btn-secondary" id="pickBtn" onclick="openPicker()" disabled>🎯 Pick Games to Watch</button>
-  <button class="btn btn-green" id="startBtn" onclick="startAutoScan()">▶ Start Auto-Scan</button>
-  <button class="btn btn-danger" id="stopBtn" style="display:none;" onclick="stopAutoScan()">■ Stop Auto-Scan</button>
-  <button class="btn btn-secondary" onclick="clearSettings()" style="margin-left:auto;" title="Clear all saved keys and preferences">🗑 Clear Saved</button>
+<!-- Step-based action flow -->
+<div style="display:flex;flex-direction:column;gap:10px;">
+  <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;">Workflow</div>
+  <div class="config-row" style="gap:10px;align-items:center;">
+
+    <!-- Step 1 -->
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="step1Badge" style="font-family:var(--mono);font-size:10px;background:var(--accent);color:var(--bg);padding:2px 7px;border-radius:2px;font-weight:600;">1</span>
+      <button class="btn btn-primary" id="loadBtn" onclick="loadGames()">⬇ Load Games</button>
+    </div>
+
+    <span style="color:var(--border);font-size:20px;">›</span>
+
+    <!-- Step 2 -->
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="step2Badge" style="font-family:var(--mono);font-size:10px;background:var(--surface2);color:var(--muted);padding:2px 7px;border-radius:2px;font-weight:600;border:1px solid var(--border);">2</span>
+      <button class="btn btn-secondary" id="pickBtn" onclick="openPicker()" disabled>🎯 Select Games</button>
+      <span id="watchlistChip" style="display:none;font-family:var(--mono);font-size:10px;color:var(--gold);border:1px solid rgba(255,209,102,0.4);padding:3px 9px;border-radius:2px;"></span>
+    </div>
+
+    <span style="color:var(--border);font-size:20px;">›</span>
+
+    <!-- Step 3 -->
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="step3Badge" style="font-family:var(--mono);font-size:10px;background:var(--surface2);color:var(--muted);padding:2px 7px;border-radius:2px;font-weight:600;border:1px solid var(--border);">3</span>
+      <button class="btn btn-green" id="startBtn" onclick="startAutoScan()" disabled>▶ Start Auto-Scan</button>
+      <button class="btn btn-danger" id="stopBtn" style="display:none;" onclick="stopAutoScan()">■ Stop</button>
+    </div>
+
+    <button class="btn btn-secondary" onclick="clearSettings()" style="margin-left:auto;font-size:11px;padding:8px 14px;" title="Clear all saved keys and preferences">🗑 Clear Saved</button>
+  </div>
 </div>
 ```
 
@@ -282,12 +306,12 @@ footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border)
   <!-- LEGEND -->
 
   <div class="legend">
-    <div class="legend-item"><div class="dot dot-strong"></div> Strong RLM — both signals fire (high-priority Pushover, bypasses quiet hours)</div>
-    <div class="legend-item"><div class="dot dot-moderate"></div> Moderate RLM — one signal (normal Pushover)</div>
-    <div class="legend-item"><div class="dot dot-watch"></div> No RLM detected</div>
+    <div class="legend-item"><div class="dot dot-strong"></div> Strong RLM — Pinnacle diverges from soft books AND line confirms public-vs-sharp split (high-priority Pushover)</div>
+    <div class="legend-item"><div class="dot dot-moderate"></div> Moderate RLM — Pinnacle diverges 0.5+ pts from soft books (normal Pushover)</div>
+    <div class="legend-item"><div class="dot dot-watch"></div> No divergence detected</div>
   </div>
 
-  <div id="status">Enter your API key, configure Pushover, then scan or start auto-scan.</div>
+  <div id="status">Step 1 — Enter your API key and click Load Games to fetch today's schedule.</div>
   <div id="creditsDisplay" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:12px;letter-spacing:0.05em;min-height:14px;"></div>
 
   <div id="summaryBar" style="display:none;" class="summary-bar">
@@ -302,7 +326,7 @@ footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border)
   <div id="results">
     <div class="empty-state">
       <span class="big">NO SCAN YET</span>
-      Configure your keys above, optionally pick specific games to watch, then run a scan.
+      Step 1: Click Load Games to fetch today's schedule. Step 2: Select which games to monitor. Step 3: Start Auto-Scan.
     </div>
   </div>
 
@@ -330,7 +354,7 @@ footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border)
       <div class="picker-loading">Loading games…</div>
     </div>
     <div class="modal-footer">
-      <div class="modal-note">Only checked games will be scanned &amp; trigger alerts.<br>Leave all unchecked to monitor every game.</div>
+      <div class="modal-note">Select the games you want to monitor for RLM. At least one game must be selected to enable auto-scan.</div>
       <button class="btn btn-secondary" onclick="closePicker()">Cancel</button>
       <button class="btn btn-primary" onclick="saveWatchlist()">Save Watchlist</button>
     </div>
@@ -417,7 +441,7 @@ async function fetchOddsForEvents(apiKey, sport, events) {
   for (let i = 0; i < events.length; i += chunkSize) {
     const chunk = events.slice(i, i + chunkSize);
     const ids = chunk.map(e => e.id).join(',');
-    const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american&eventIds=${ids}`;
+    const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us,eu&markets=spreads&oddsFormat=american&eventIds=${ids}`;
     try {
       const data = await fetchWithRetry(url);
       data.forEach(g => { oddsMap[g.id] = g; });
@@ -430,53 +454,135 @@ async function fetchOddsForEvents(apiKey, sport, events) {
 }
 
 // ─── RLM ANALYSIS ─────────────────────────────────────────────────────────────
-function simPublic(home, away) {
-  const seed = (home+away).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
-  const h = 40 + ((seed * 37) % 45);
-  return { h: Math.round(h), a: 100-Math.round(h) };
+
+// Sharp books — market makers that sharp bettors use
+const SHARP_BOOKS  = ['pinnacle', 'betfair', 'matchbook'];
+// Soft books — where public money flows
+const SOFT_BOOKS   = ['draftkings', 'fanduel', 'betmgm', 'caesars', 'pointsbet', 'williamhill_us', 'barstool', 'unibet_us'];
+
+function getBookSpread(game, bookKeys, teamName) {
+  for (const key of bookKeys) {
+    const bm = game.bookmakers?.find(b => b.key === key);
+    if (!bm) continue;
+    const mkt = bm.markets?.find(m => m.key === 'spreads');
+    if (!mkt) continue;
+    const out = mkt.outcomes.find(o => o.name === teamName);
+    if (out?.point != null) return roundHalf(out.point);
+  }
+  return null;
+}
+
+function avgBookSpread(game, bookKeys, teamName) {
+  const points = [];
+  for (const key of bookKeys) {
+    const bm = game.bookmakers?.find(b => b.key === key);
+    if (!bm) continue;
+    const mkt = bm.markets?.find(m => m.key === 'spreads');
+    if (!mkt) continue;
+    const out = mkt.outcomes.find(o => o.name === teamName);
+    if (out?.point != null) points.push(roundHalf(out.point));
+  }
+  if (!points.length) return null;
+  return roundHalf(points.reduce((a,b) => a+b, 0) / points.length);
 }
 
 function analyzeRLM(game, sport) {
-  const bm = game.bookmakers?.find(b=>b.key==='draftkings') || game.bookmakers?.[0];
-  if (!bm) return null;
-  const mkt = bm.markets?.find(m=>m.key==='spreads');
-  if (!mkt) return null;
-  const homeOut = mkt.outcomes.find(o=>o.name===game.home_team);
-  const awayOut = mkt.outcomes.find(o=>o.name===game.away_team);
-  if (!homeOut||!awayOut) return null;
+  if (!game.bookmakers?.length) return null;
 
-  const curHome = roundHalf(homeOut.point), curAway = roundHalf(awayOut.point);
-  const spreads = game.bookmakers
-    .map(b=>b.markets?.find(m=>m.key==='spreads')?.outcomes?.find(o=>o.name===game.home_team)?.point)
-    .filter(v=>v!=null);
-  // Round each book's spread to nearest 0.5 before averaging, then round result
-  const roundedSpreads = spreads.map(s => roundHalf(s));
-  const openLine = roundedSpreads.length ? roundHalf(roundedSpreads.reduce((a,b)=>a+b,0)/roundedSpreads.length) : curHome;
-  const diff = roundHalf(curHome - openLine);
-  const pub = simPublic(game.home_team, game.away_team);
+  // ── Get Pinnacle (sharp) line ──────────────────────────────────────────────
+  const sharpHome = getBookSpread(game, SHARP_BOOKS, game.home_team);
+  const sharpAway = getBookSpread(game, SHARP_BOOKS, game.away_team);
+
+  // ── Get soft book consensus line ───────────────────────────────────────────
+  const softHome = avgBookSpread(game, SOFT_BOOKS, game.home_team);
+  const softAway = avgBookSpread(game, SOFT_BOOKS, game.away_team);
+
+  // ── Fallback: use any available book if neither sharp nor soft found ────────
+  const allSpreadsHome = game.bookmakers
+    .map(b => b.markets?.find(m=>m.key==='spreads')?.outcomes?.find(o=>o.name===game.home_team)?.point)
+    .filter(v => v != null);
+  const fallbackHome = allSpreadsHome.length ? roundHalf(allSpreadsHome.reduce((a,b)=>a+b,0)/allSpreadsHome.length) : null;
+
+  const curHome = softHome ?? sharpHome ?? fallbackHome;
+  const curAway = softAway ?? sharpAway ?? (curHome != null ? roundHalf(-curHome) : null);
+  if (curHome == null) return null;
+
+  // Which books are actually present — for display
+  const hasSharp = sharpHome != null;
+  const hasSoft  = softHome != null;
+  const availableBooks = game.bookmakers.map(b=>b.key);
 
   let sharp=null, s1=false, s2=false, lineDesc='', pubDesc='';
+  let diff = 0;
+  let openLine = curHome; // fallback if no sharp book
 
-  if (Math.abs(diff) >= 0.5) {
-    s1 = true;
-    sharp = diff > 0 ? game.away_team : game.home_team;
-    lineDesc = `Line moved ${fmtSpread(openLine)} → ${fmtSpread(curHome)} (${diff>0?'away':'home'}-side move)`;
-  }
-  if (pub.h >= 60 && curHome > openLine) {
-    s2=true; sharp=sharp||game.away_team;
-    pubDesc = `${pub.h}% public on ${game.home_team}, line moved against them — sharp on ${game.away_team}`;
-  } else if (pub.a >= 60 && curHome < openLine) {
-    s2=true; sharp=sharp||game.home_team;
-    pubDesc = `${pub.a}% public on ${game.away_team}, line moved against them — sharp on ${game.home_team}`;
-  } else {
-    const fav = pub.h>=50?game.home_team:game.away_team;
-    pubDesc = `${pub.h>=50?pub.h:pub.a}% public on ${fav}`;
+  // ── SIGNAL 1: Pinnacle vs soft book divergence ─────────────────────────────
+  // If Pinnacle has a meaningfully different line than soft books,
+  // sharp money has moved Pinnacle but public books haven't caught up.
+  if (hasSharp && hasSoft) {
+    diff = roundHalf(sharpHome - softHome);
+    openLine = softHome; // soft book = "public line", sharp = where money went
+
+    if (Math.abs(diff) >= 0.5) {
+      s1 = true;
+      // Pinnacle favoring away more than soft books (sharpHome is HIGHER = away is cheaper)
+      sharp = diff > 0 ? game.away_team : game.home_team;
+      lineDesc = `Pinnacle ${fmtSpread(sharpHome)} vs soft books ${fmtSpread(softHome)} — ${Math.abs(diff).toFixed(1)} pt gap`;
+    }
+  } else if (hasSharp && !hasSoft) {
+    // Only sharp book available — note it but can't compare
+    openLine = sharpHome;
+    pubDesc = `Only sharp book (Pinnacle) available — no soft book to compare`;
+  } else if (!hasSharp && hasSoft) {
+    // No Pinnacle — fall back to cross-book variance as weak signal
+    const allRounded = allSpreadsHome.map(s=>roundHalf(s));
+    const minLine = Math.min(...allRounded);
+    const maxLine = Math.max(...allRounded);
+    diff = roundHalf(maxLine - minLine);
+    openLine = softHome;
+    if (diff >= 0.5) {
+      s1 = true;
+      sharp = maxLine > softHome ? game.away_team : game.home_team;
+      lineDesc = `Cross-book spread ${fmtSpread(minLine)}–${fmtSpread(maxLine)} (${diff.toFixed(1)} pt variance, no Pinnacle)`;
+    }
   }
 
-  const strength = s1&&s2 ? 'strong' : (s1||s2 ? 'moderate' : 'watch');
-  return { homeTeam:game.home_team, awayTeam:game.away_team, commenceTime:game.commence_time,
-    curHome, curAway, openLine, diff, homePub:pub.h, awayPub:pub.a,
-    sharp, s1, s2, strength, lineDesc, pubDesc, sport };
+  // ── SIGNAL 2: Line moved against the public side ───────────────────────────
+  // Pinnacle moved AWAY from the public favorite = classic RLM
+  if (s1 && hasSharp && hasSoft) {
+    // If soft books favor home (negative spread = home favored) but
+    // Pinnacle has moved LESS in favor of home (sharpHome > softHome), 
+    // that means sharp money is on away — confirming Signal 1
+    const softFavorsHome = softHome < 0;
+    const sharpDisagreesWithPublic = diff > 0; // sharp shifted toward away
+
+    if (softFavorsHome && sharpDisagreesWithPublic) {
+      s2 = true;
+      sharp = game.away_team;
+      pubDesc = `Public on ${game.home_team} (soft books ${fmtSpread(softHome)}) — Pinnacle at ${fmtSpread(sharpHome)} signals sharp money on ${game.away_team}`;
+    } else if (!softFavorsHome && !sharpDisagreesWithPublic) {
+      s2 = true;
+      sharp = game.home_team;
+      pubDesc = `Public on ${game.away_team} (soft books ${fmtSpread(softHome)}) — Pinnacle at ${fmtSpread(sharpHome)} signals sharp money on ${game.home_team}`;
+    } else {
+      pubDesc = `Pinnacle ${fmtSpread(sharpHome)} · Soft books ${fmtSpread(softHome)}`;
+    }
+  } else if (!s1) {
+    const booksPresent = availableBooks.join(', ');
+    pubDesc = hasSharp
+      ? `Pinnacle ${fmtSpread(sharpHome)} aligns with soft books — no divergence`
+      : `No Pinnacle data (books: ${availableBooks.slice(0,3).join(', ')}${availableBooks.length>3?'…':''})`;
+  }
+
+  const strength = s1 && s2 ? 'strong' : s1 ? 'moderate' : 'watch';
+
+  return {
+    homeTeam: game.home_team, awayTeam: game.away_team, commenceTime: game.commence_time,
+    curHome, curAway, openLine,
+    sharpHome, softHome, diff,
+    hasSharp, hasSoft,
+    sharp, s1, s2, strength, lineDesc, pubDesc, sport
+  };
 }
 
 // ─── RENDER CARD ──────────────────────────────────────────────────────────────
@@ -514,10 +620,10 @@ function renderCard(g, idx, isNew) {
         </div>
       </div>
       <div class="metrics">
-        <div class="metric-box"><div class="metric-label">Open Line</div><div class="metric-value">${fmtSpread(g.openLine)}</div></div>
-        <div class="metric-box"><div class="metric-label">Line Move</div><div class="metric-value ${g.diff>0?'mv-neg':g.diff<0?'mv-pos':''}">${g.diff!==0?(g.diff>0?'+':'')+g.diff.toFixed(1):'±0'}</div></div>
-        <div class="metric-box"><div class="metric-label">Public % Home</div><div class="metric-value ${g.homePub>=65?'mv-neu':''}">${g.homePub}%</div></div>
-        <div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:${g.sharp?'var(--accent)':'var(--muted)'};">${g.sharp?g.sharp.split(' ').pop().toUpperCase():'—'}</div></div>
+        <div class="metric-box"><div class="metric-label">Pinnacle</div><div class="metric-value" style="color:${g.hasSharp?'var(--accent2)':'var(--muted)'}">${g.hasSharp?fmtSpread(g.sharpHome):'N/A'}</div></div>
+        <div class="metric-box"><div class="metric-label">Soft Books</div><div class="metric-value">${g.hasSoft?fmtSpread(g.softHome):'N/A'}</div></div>
+        <div class="metric-box"><div class="metric-label">Gap</div><div class="metric-value ${g.diff>0?'mv-neg':g.diff<0?'mv-pos':''}">${g.diff!==0?(g.diff>0?'+':'')+Math.abs(g.diff).toFixed(1)+'pt':'±0'}</div></div>
+        <div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:${g.sharp?'var(--accent)':'var(--muted)'}">${g.sharp?g.sharp.split(' ').pop().toUpperCase():'—'}</div></div>
       </div>
     </div>
     ${signal}
@@ -601,53 +707,47 @@ async function runScan(isAuto=false) {
   setStatus(`${isAuto?'[Auto] ':''}Fetching all games for ${date}…`,'loading');
   if (!isAuto) { document.getElementById('results').innerHTML=''; document.getElementById('summaryBar').style.display='none'; }
 
-  // ── PHASE 1: Smart detection — call /events for all sports (FREE, no credit cost)
-  // Only sports with games today will proceed to the paid /odds call
-  const allEvents = [];
+  // Games were pre-loaded via loadGames() — use watchlist to determine what to scan
   const allOddsMap = {};
   const errs = [];
-  const sportEventMap = {}; // sport -> events[]
 
-  setStatus(`${isAuto?'[Auto] ':''}Detecting active sports (free)…`, 'loading');
-  await Promise.all(sports.map(async sport => {
-    const events = await fetchEventsForSport(apiKey, sport, date);
-    sportEventMap[sport] = events;
-    events.forEach(ev => allEvents.push({ ...ev, sportKey: sport }));
-  }));
-
-  const activeSports = sports.filter(s => sportEventMap[s]?.length > 0);
-  const skippedSports = sports.filter(s => !sportEventMap[s]?.length);
-
-  // Update pills visually — dim sports with no games today
-  sports.forEach(sport => {
-    const pill = document.querySelector(`.pill[data-sport="${sport}"]`);
-    if (!pill) return;
-    if (skippedSports.includes(sport)) {
-      pill.style.opacity = '0.4';
-      pill.title = 'No games today — skipped to save credits';
-    } else {
-      pill.style.opacity = '';
-      pill.title = `${sportEventMap[sport].length} game(s) today`;
-    }
-  });
-
-  if (activeSports.length) {
-    addLog(`Smart detection: ${activeSports.map(s=>sportLabel(s)).join(', ')} active (${skippedSports.length} sport(s) skipped — no games).`);
+  if (watchlist.size === 0) {
+    setStatus('No games selected — use Step 2 to select games first.', 'error');
+    btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
   }
 
-  // ── PHASE 2: Fetch odds ONLY for sports that have games (costs credits)
-  for (const sport of activeSports) {
+  // Get the watchlist events from allFetchedGames
+  const watchlistEvents = allFetchedGames.filter(ev =>
+    watchlist.has(`${ev.home_team}||${ev.away_team}||${ev.commence_time}`)
+  );
+
+  if (!watchlistEvents.length) {
+    setStatus('Watchlist games not found — reload games first.', 'error');
+    btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
+  }
+
+  // Group watchlist events by sport for efficient fetching
+  const bySport = {};
+  watchlistEvents.forEach(ev => {
+    if (!bySport[ev.sportKey]) bySport[ev.sportKey] = [];
+    bySport[ev.sportKey].push(ev);
+  });
+
+  // Fetch odds only for selected games — costs credits
+  for (const [sport, events] of Object.entries(bySport)) {
     try {
-      setStatus(`${isAuto?'[Auto] ':''}Fetching odds — ${sportLabel(sport)} (${sportEventMap[sport].length} games)…`, 'loading');
-      const oddsMap = await fetchOddsForEvents(apiKey, sport, sportEventMap[sport]);
+      setStatus(`${isAuto?'[Auto] ':''}Fetching odds — ${sportLabel(sport)} (${events.length} selected games)…`, 'loading');
+      const oddsMap = await fetchOddsForEvents(apiKey, sport, events);
       Object.assign(allOddsMap, oddsMap);
     } catch(e) {
       errs.push(`${sportLabel(sport)}: ${e.message}`);
     }
   }
 
-  allFetchedGames = allEvents.map(ev => allOddsMap[ev.id] ? { ...allOddsMap[ev.id], sportKey: ev.sportKey } : null).filter(Boolean);
-  document.getElementById('pickBtn').disabled = allEvents.length === 0;
+  // allEvents for display = watchlist only
+  const allEvents = watchlistEvents;
+
+  // allFetchedGames already set by loadGames() — don't overwrite
 
   if (errs.length && !allEvents.length) {
     setStatus(`Error: ${errs[0]}`, 'error');
@@ -659,14 +759,10 @@ async function runScan(isAuto=false) {
     btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
   }
 
-  // Split into: has odds vs no odds
+  // Split into: has odds vs no odds (all events are from watchlist)
   const withOdds = allEvents.filter(ev => allOddsMap[ev.id]);
   const noOdds   = allEvents.filter(ev => !allOddsMap[ev.id]);
-
-  // Filter to watchlist if active (only affects odds-evaluated games)
-  const toScan = watchlist.size > 0
-    ? withOdds.filter(ev => watchlist.has(`${ev.home_team}||${ev.away_team}||${ev.commence_time}`))
-    : withOdds;
+  const toScan   = withOdds;
 
   // Analyze RLMs
   let analyzed = toScan.map(ev => analyzeRLM(allOddsMap[ev.id], ev.sportKey)).filter(Boolean);
@@ -726,11 +822,68 @@ async function runScan(isAuto=false) {
   btn.disabled=false; btn.textContent='⚡ Scan Now';
 }
 
-function manualScan() { runScan(false); }
+// ─── LOAD GAMES (Step 1 — free, no odds cost) ────────────────────────────────
+async function loadGames() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const date = document.getElementById('scanDate').value;
+  const sports = [...document.querySelectorAll('.pill[data-sport].active')].map(p=>p.dataset.sport);
+
+  if (!apiKey) { setStatus('Please enter your Odds API key.','error'); return; }
+  if (!sports.length) { setStatus('Select at least one sport.','error'); return; }
+
+  const btn = document.getElementById('loadBtn');
+  btn.disabled = true; btn.textContent = '⏳ Loading…';
+  setStatus(`Fetching today's schedule (free — no credits used)…`, 'loading');
+
+  const allEvents = [];
+  const sportEventMap = {};
+
+  await Promise.all(sports.map(async sport => {
+    const events = await fetchEventsForSport(apiKey, sport, date);
+    sportEventMap[sport] = events;
+    events.forEach(ev => allEvents.push({ ...ev, sportKey: sport }));
+  }));
+
+  allFetchedGames = allEvents;
+
+  const activeSports = sports.filter(s => sportEventMap[s]?.length > 0);
+  const skippedSports = sports.filter(s => !sportEventMap[s]?.length);
+
+  // Update pill visuals
+  sports.forEach(sport => {
+    const pill = document.querySelector(`.pill[data-sport="${sport}"]`);
+    if (!pill) return;
+    if (skippedSports.includes(sport)) {
+      pill.style.opacity = '0.4';
+      pill.title = 'No games today';
+    } else {
+      pill.style.opacity = '';
+      pill.title = `${sportEventMap[sport].length} game(s) today`;
+    }
+  });
+
+  btn.disabled = false; btn.textContent = '⬇ Load Games';
+
+  if (!allEvents.length) {
+    setStatus(`No games found for ${date}.`, '');
+    return;
+  }
+
+  // Unlock step 2
+  document.getElementById('pickBtn').disabled = false;
+  document.getElementById('step2Badge').style.background = 'var(--gold)';
+  document.getElementById('step2Badge').style.color = 'var(--bg)';
+  document.getElementById('step2Badge').style.border = 'none';
+
+  const breakdown = activeSports.map(s => `${sportLabel(s)}: ${sportEventMap[s].length}`).join(' · ');
+  setStatus(`✓ ${allEvents.length} games loaded — ${breakdown}. Now select which games to monitor.`, '');
+  addLog(`Loaded ${allEvents.length} games across ${activeSports.length} sport(s). ${skippedSports.length} sport(s) have no games today.`);
+}
 
 // ─── AUTO SCAN ────────────────────────────────────────────────────────────────
 function startAutoScan() {
   if (!document.getElementById('apiKey').value.trim()) { setStatus('Enter your API key first.','error'); return; }
+  if (watchlist.size === 0) { setStatus('Step 2 — Select at least one game to monitor before starting.','error'); return; }
   const mins = parseInt(document.getElementById('scanInterval').value)||30;
   const ms = mins*60*1000;
   document.getElementById('startBtn').style.display='none';
@@ -803,22 +956,44 @@ function togglePick(id, el) {
 function pickerAll() { allFetchedGames.forEach(g=>pickerTemp.add(gameIdRaw(g))); renderPicker(); }
 function pickerNone() { pickerTemp.clear(); renderPicker(); }
 function updatePickerSub() {
-  document.getElementById('pickerSubtitle').textContent = pickerTemp.size===0 ? 'All games will be monitored' : `${pickerTemp.size} game(s) selected`;
+  document.getElementById('pickerSubtitle').textContent = pickerTemp.size===0 ? 'No games selected — select at least one' : `${pickerTemp.size} game(s) selected`;
 }
 
 function saveWatchlist() {
   watchlist = new Set(pickerTemp);
-  previousRLMs.clear(); // reset so re-scan re-evaluates
+  previousRLMs.clear();
   closePicker();
-  const btn = document.getElementById('pickBtn');
-  if (watchlist.size>0) {
-    btn.textContent=`🎯 Watching ${watchlist.size} Game${watchlist.size>1?'s':''}`;
-    btn.style.color='var(--gold)'; btn.style.borderColor='var(--gold)';
+
+  const pickBtn = document.getElementById('pickBtn');
+  const chip = document.getElementById('watchlistChip');
+  const startBtn = document.getElementById('startBtn');
+  const step3Badge = document.getElementById('step3Badge');
+
+  if (watchlist.size > 0) {
+    pickBtn.textContent = '🎯 Games Selected';
+    pickBtn.style.color = 'var(--gold)';
+    pickBtn.style.borderColor = 'var(--gold)';
+    chip.textContent = `${watchlist.size} game${watchlist.size>1?'s':''} selected`;
+    chip.style.display = '';
+
+    // Unlock step 3
+    startBtn.disabled = false;
+    step3Badge.style.background = 'var(--green)';
+    step3Badge.style.color = 'var(--bg)';
+    step3Badge.style.border = 'none';
+
+    setStatus(`✓ ${watchlist.size} game(s) selected. Click Start Auto-Scan to begin monitoring.`, '');
     addLog(`Watchlist saved — ${watchlist.size} game(s) selected.`);
   } else {
-    btn.textContent='🎯 Pick Games to Watch';
-    btn.style.color=''; btn.style.borderColor='';
-    addLog('Watchlist cleared — monitoring all games.');
+    pickBtn.textContent = '🎯 Select Games';
+    pickBtn.style.color = ''; pickBtn.style.borderColor = '';
+    chip.style.display = 'none';
+    startBtn.disabled = true;
+    step3Badge.style.background = 'var(--surface2)';
+    step3Badge.style.color = 'var(--muted)';
+    step3Badge.style.border = '1px solid var(--border)';
+    setStatus('No games selected — please select at least one game to monitor.', '');
+    addLog('Watchlist cleared.');
   }
 }
 
@@ -867,7 +1042,7 @@ function loadSettings() {
     // Show saved indicator if keys exist
     if (s.apiKey || s.poUserKey) {
       setStatus('✓ Settings restored from last session.', '');
-      setTimeout(()=>setStatus('Enter your API key, configure Pushover, then scan or start auto-scan.',''), 3000);
+      setTimeout(()=>setStatus('Step 1 — Enter your API key and click Load Games to fetch today's schedule.',''), 3000);
     }
   } catch(e) { /* storage unavailable */ }
 }
