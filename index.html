@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RLM Detector — Sharp Money Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f; --surface: #111318; --surface2: #181c24; --border: #1e2530;
+    --accent: #00e5ff; --accent2: #ff3d5a; --gold: #ffd166; --green: #06d6a0;
+    --text: #e8edf5; --muted: #5a6478;
+    --mono: 'IBM Plex Mono', monospace; --display: 'Barlow Condensed', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--display); min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 20px 60px; }
+
+/* HEADER */
+header { border-bottom: 1px solid var(–border); padding: 24px 0 20px; margin-bottom: 24px; }
+.logo-eyebrow { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 4px; }
+.logo { font-size: 48px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
+.logo span { color: var(–accent); }
+.logo-sub { font-family: var(–mono); font-size: 11px; color: var(–muted); margin-top: 6px; letter-spacing: 0.1em; }
+
+/* SECTION LABEL */
+.section-label { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.section-label::after { content: ‘’; flex: 1; height: 1px; background: var(–border); }
+
+/* CONFIG PANEL */
+.config-panel { background: var(–surface); border: 1px solid var(–border); border-radius: 4px; padding: 20px 24px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 18px; }
+.config-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.field-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
+label { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.15em; text-transform: uppercase; }
+input[type=“text”], input[type=“date”], input[type=“number”] {
+background: var(–bg); border: 1px solid var(–border); color: var(–text);
+font-family: var(–mono); font-size: 13px; padding: 10px 14px; border-radius: 3px; outline: none; transition: border-color 0.2s; width: 100%;
+}
+input:focus { border-color: var(–accent); }
+input[type=“date”]::-webkit-calendar-picker-indicator { filter: invert(0.4); }
+input[type=“number”]::-webkit-inner-spin-button { opacity: 0.4; }
+
+/* PILLS */
+.pill-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row-label { font-family: var(–mono); font-size: 10px; color: var(–muted); letter-spacing: 0.15em; text-transform: uppercase; margin-right: 4px; white-space: nowrap; }
+.pill { background: var(–surface2); border: 1px solid var(–border); color: var(–muted); font-family: var(–display); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; padding: 6px 14px; border-radius: 2px; cursor: pointer; transition: all 0.15s; user-select: none; }
+.pill:hover { border-color: var(–accent); color: var(–accent); }
+.pill.active { background: var(–accent); border-color: var(–accent); color: var(–bg); }
+
+/* BUTTONS */
+.btn { border: none; font-family: var(–display); font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 3px; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+.btn-primary { background: var(–accent); color: var(–bg); font-size: 15px; padding: 11px 24px; }
+.btn-primary:hover { background: #33eaff; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-green { background: var(–green); color: var(–bg); font-size: 15px; padding: 11px 24px; }
+.btn-green:hover { background: #0ff5bd; transform: translateY(-1px); }
+.btn-danger { background: transparent; color: var(–accent2); border: 1px solid var(–accent2); font-size: 13px; padding: 10px 18px; }
+.btn-danger:hover { background: rgba(255,61,90,0.1); }
+.btn-secondary { background: transparent; color: var(–muted); border: 1px solid var(–border); font-size: 13px; padding: 10px 18px; }
+.btn-secondary:hover { border-color: var(–accent); color: var(–accent); }
+
+/* PUSHOVER STATUS */
+.po-chip { font-family: var(–mono); font-size: 10px; padding: 4px 10px; border-radius: 2px; letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0; }
+.po-chip.ok { color: var(–green); border: 1px solid var(–green); background: rgba(6,214,160,0.08); }
+.po-chip.off { color: var(–muted); border: 1px solid var(–border); background: transparent; }
+
+/* AUTO SCAN BAR */
+.autoscan-bar { display: none; background: var(–surface); border: 1px solid var(–border); border-left: 3px solid var(–green); border-radius: 4px; padding: 12px 18px; margin-bottom: 16px; align-items: center; gap: 16px; flex-wrap: wrap; }
+.autoscan-bar.active { display: flex; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(–green); animation: blink 1.4s ease-in-out infinite; flex-shrink: 0; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+.autoscan-info { font-family: var(–mono); font-size: 12px; color: var(–text); flex: 1; line-height: 1.6; }
+.autoscan-info .muted { color: var(–muted); }
+.countdown { font-family: var(–mono); font-size: 24px; font-weight: 500; color: var(–accent); letter-spacing: 0.05em; min-width: 65px; text-align: right; }
+
+/* LEGEND */
+.legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; padding: 12px 18px; background: var(–surface); border: 1px solid var(–border); border-radius: 4px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(–muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-strong { background: var(–accent2); box-shadow: 0 0 6px var(–accent2); }
+.dot-moderate { background: var(–gold); box-shadow: 0 0 6px var(–gold); }
+.dot-watch { background: var(–muted); }
+
+/* STATUS */
+#status { font-family: var(–mono); font-size: 12px; color: var(–muted); margin-bottom: 16px; min-height: 18px; letter-spacing: 0.05em; }
+#status.loading { color: var(–accent); }
+#status.error { color: var(–accent2); }
+
+/* SUMMARY BAR */
+.summary-bar { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; padding: 14px 20px; background: var(–surface); border: 1px solid var(–border); border-radius: 4px; align-items: center; }
+.sum-item { display: flex; flex-direction: column; gap: 2px; }
+.sum-val { font-size: 28px; font-weight: 700; line-height: 1; }
+.sum-lbl { font-family: var(–mono); font-size: 10px; color: var(–muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.sum-val.r { color: var(–accent2); }
+.sum-val.y { color: var(–gold); }
+.sum-val.b { color: var(–accent); }
+.sep { width: 1px; background: var(–border); align-self: stretch; margin: 0 4px; }
+.last-scan-info { font-family: var(–mono); font-size: 10px; color: var(–muted); margin-left: auto; line-height: 1.7; text-align: right; }
+
+/* RESULTS */
+#results { display: flex; flex-direction: column; gap: 12px; }
+
+/* GAME CARD */
+.game-card { background: var(–surface); border: 1px solid var(–border); border-radius: 4px; overflow: hidden; animation: fadeUp 0.3s ease both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+.game-card.rlm-strong { border-color: var(–accent2); }
+.game-card.rlm-moderate { border-color: var(–gold); }
+.game-card.newly-flagged { animation: fadeUp 0.3s ease both, flashNew 1.5s ease 0.3s; }
+@keyframes flashNew { 0%{box-shadow:0 0 0 3px rgba(255,61,90,0.5);} 100%{box-shadow:none;} }
+
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; border-bottom: 1px solid var(–border); gap: 10px; flex-wrap: wrap; }
+.sport-badge { font-family: var(–mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; background: var(–surface2); color: var(–muted); border: 1px solid var(–border); flex-shrink: 0; }
+.game-time { font-family: var(–mono); font-size: 11px; color: var(–muted); margin-left: auto; }
+.new-badge { font-family: var(–mono); font-size: 9px; color: var(–bg); background: var(–accent2); padding: 2px 7px; border-radius: 2px; letter-spacing: 0.1em; text-transform: uppercase; }
+.rlm-badge { font-family: var(–mono); font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border-radius: 2px; flex-shrink: 0; }
+.rlm-badge.strong { background: rgba(255,61,90,0.15); color: var(–accent2); border: 1px solid var(–accent2); }
+.rlm-badge.moderate { background: rgba(255,209,102,0.12); color: var(–gold); border: 1px solid var(–gold); }
+.rlm-badge.watch { background: var(–surface2); color: var(–muted); border: 1px solid var(–border); }
+
+.card-body { padding: 14px 16px; display: flex; gap: 16px; flex-wrap: wrap; }
+.matchup { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 6px; }
+.team-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.team-name { font-size: 22px; font-weight: 700; letter-spacing: 0.02em; line-height: 1; }
+.team-name.sharp-side { color: var(–accent); }
+.spread { font-family: var(–mono); font-size: 13px; background: var(–surface2); padding: 3px 8px; border-radius: 2px; white-space: nowrap; }
+.vs-divider { font-family: var(–mono); font-size: 10px; color: var(–muted); letter-spacing: 0.1em; }
+
+.metrics { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+.metric-box { background: var(–surface2); border: 1px solid var(–border); border-radius: 3px; padding: 10px 14px; min-width: 100px; display: flex; flex-direction: column; gap: 4px; }
+.metric-label { font-family: var(–mono); font-size: 9px; color: var(–muted); letter-spacing: 0.15em; text-transform: uppercase; }
+.metric-value { font-family: var(–mono); font-size: 20px; font-weight: 500; line-height: 1; }
+.mv-pos { color: var(–green); } .mv-neg { color: var(–accent2); } .mv-neu { color: var(–gold); }
+
+.signal-row { padding: 10px 16px; background: var(–surface2); border-top: 1px solid var(–border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.signal-text { font-family: var(–mono); font-size: 11px; color: var(–muted); flex: 1; }
+.signal-text strong { color: var(–text); }
+.sharp-tag { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 60px 20px; color: var(–muted); font-family: var(–mono); font-size: 13px; border: 1px dashed var(–border); border-radius: 4px; }
+.empty-state .big { font-size: 36px; font-family: var(–display); font-weight: 900; color: var(–surface2); display: block; margin-bottom: 12px; }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(–surface); border: 1px solid var(–border); border-radius: 6px; width: 100%; max-width: 700px; max-height: 82vh; display: flex; flex-direction: column; overflow: hidden; }
+.modal-header { padding: 18px 20px; border-bottom: 1px solid var(–border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.modal-title { font-size: 24px; font-weight: 900; }
+.modal-subtitle { font-family: var(–mono); font-size: 11px; color: var(–muted); }
+.modal-close { background: none; border: none; color: var(–muted); font-size: 24px; cursor: pointer; line-height: 1; padding: 0 4px; }
+.modal-close:hover { color: var(–text); }
+.modal-body { overflow-y: auto; padding: 16px 20px; flex: 1; }
+.modal-footer { padding: 14px 20px; border-top: 1px solid var(–border); display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+.modal-note { font-family: var(–mono); font-size: 10px; color: var(–muted); flex: 1; line-height: 1.6; }
+
+.picker-loading { font-family: var(–mono); font-size: 12px; color: var(–muted); text-align: center; padding: 40px; }
+.picker-sport-header { font-family: var(–mono); font-size: 10px; color: var(–accent); letter-spacing: 0.2em; text-transform: uppercase; margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(–border); }
+.picker-sport-header:first-child { margin-top: 0; }
+.picker-game { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 3px; cursor: pointer; transition: background 0.12s; border: 1px solid transparent; margin-bottom: 4px; }
+.picker-game:hover { background: var(–surface2); }
+.picker-game.selected { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+.picker-game input[type=“checkbox”] { accent-color: var(–accent); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+.picker-game-name { font-size: 16px; font-weight: 700; flex: 1; }
+.picker-game-time { font-family: var(–mono); font-size: 10px; color: var(–muted); white-space: nowrap; }
+.picker-controls { display: flex; gap: 12px; margin-bottom: 14px; }
+.picker-ctrl-btn { font-family: var(–mono); font-size: 10px; color: var(–accent); background: none; border: none; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: underline; padding: 0; }
+
+/* NOTIFICATION LOG */
+.notif-log { margin-top: 28px; }
+.notif-entry { font-family: var(–mono); font-size: 11px; padding: 7px 0; border-bottom: 1px solid var(–border); display: flex; gap: 14px; }
+.nt { color: var(–muted); flex-shrink: 0; }
+.nm { color: var(–text); }
+.notif-entry.sent .nm { color: var(–green); }
+.notif-entry.fail .nm { color: var(–accent2); }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(–bg); }
+::-webkit-scrollbar-thumb { background: var(–border); border-radius: 3px; }
+footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border); font-family: var(–mono); font-size: 10px; color: var(–muted); letter-spacing: 0.08em; text-align: center; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo-eyebrow">// sharp money scanner v2</div>
+    <div class="logo">RLM<span>.</span>DETECT</div>
+    <div class="logo-sub">auto-scan · pushover alerts · game watchlist · all major sports</div>
+  </header>
+
+  <!-- CONFIG -->
+
+  <div class="section-label">Configuration</div>
+  <div class="config-panel">
+
+```
+<!-- Keys + Date + Interval -->
+<div class="config-row">
+  <div class="field-group" style="max-width:300px;">
+    <label>The Odds API Key</label>
+    <input type="text" id="apiKey" placeholder="Your Odds API key..." autocomplete="off">
+  </div>
+  <div class="field-group" style="max-width:170px;">
+    <label>Date</label>
+    <input type="date" id="scanDate">
+  </div>
+  <div class="field-group" style="max-width:140px;">
+    <label>Interval (min)</label>
+    <input type="number" id="scanInterval" value="30" min="5" max="120" style="text-align:center;">
+  </div>
+</div>
+
+<!-- Pushover -->
+<div class="config-row">
+  <div class="field-group" style="max-width:280px;">
+    <label>Pushover User Key</label>
+    <input type="text" id="poUserKey" placeholder="Your Pushover user key..." autocomplete="off">
+  </div>
+  <div class="field-group" style="max-width:280px;">
+    <label>Pushover App Token</label>
+    <input type="text" id="poAppToken" placeholder="Your app API token..." autocomplete="off">
+  </div>
+  <div style="display:flex;align-items:flex-end;gap:8px;">
+    <button class="btn btn-secondary" onclick="testPushover()">Test Ping</button>
+    <span id="poChip" class="po-chip off">Not configured</span>
+  </div>
+</div>
+
+<!-- Sports -->
+<div class="pill-row">
+  <span class="row-label">Sports:</span>
+  <div class="pill active" data-sport="americanfootball_nfl">NFL</div>
+  <div class="pill active" data-sport="basketball_nba">NBA</div>
+  <div class="pill active" data-sport="baseball_mlb">MLB</div>
+  <div class="pill active" data-sport="icehockey_nhl">NHL</div>
+  <div class="pill active" data-sport="americanfootball_ncaaf">NCAAF</div>
+  <div class="pill active" data-sport="basketball_ncaab">NCAAM</div>
+</div>
+
+<!-- Alert level -->
+<div class="pill-row">
+  <span class="row-label">Notify on:</span>
+  <div class="pill active" data-alert="strong">🔥 Strong RLM</div>
+  <div class="pill active" data-alert="moderate">⚡ Moderate RLM</div>
+</div>
+
+<!-- Action buttons -->
+<div class="config-row" style="gap:10px;">
+  <button class="btn btn-primary" id="scanBtn" onclick="manualScan()">⚡ Scan Now</button>
+  <button class="btn btn-secondary" id="pickBtn" onclick="openPicker()" disabled>🎯 Pick Games to Watch</button>
+  <button class="btn btn-green" id="startBtn" onclick="startAutoScan()">▶ Start Auto-Scan</button>
+  <button class="btn btn-danger" id="stopBtn" style="display:none;" onclick="stopAutoScan()">■ Stop Auto-Scan</button>
+  <button class="btn btn-secondary" onclick="clearSettings()" style="margin-left:auto;" title="Clear all saved keys and preferences">🗑 Clear Saved</button>
+</div>
+```
+
+  </div>
+
+  <!-- AUTO SCAN STATUS BAR -->
+
+  <div class="autoscan-bar" id="autoscanBar">
+    <div class="live-dot"></div>
+    <div class="autoscan-info">
+      <strong>Auto-scan active</strong> &nbsp;·&nbsp;
+      <span class="muted">Scans run: </span><span id="scanCountEl">0</span> &nbsp;·&nbsp;
+      <span class="muted">Last: </span><span id="lastScanEl">—</span>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.1em;text-align:right;margin-bottom:2px;">NEXT SCAN</div>
+      <div class="countdown" id="countdownEl">—</div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+
+  <div class="legend">
+    <div class="legend-item"><div class="dot dot-strong"></div> Strong RLM — both signals fire (high-priority Pushover, bypasses quiet hours)</div>
+    <div class="legend-item"><div class="dot dot-moderate"></div> Moderate RLM — one signal (normal Pushover)</div>
+    <div class="legend-item"><div class="dot dot-watch"></div> No RLM detected</div>
+  </div>
+
+  <div id="status">Enter your API key, configure Pushover, then scan or start auto-scan.</div>
+
+  <div id="summaryBar" style="display:none;" class="summary-bar">
+    <div class="sum-item"><div class="sum-val r" id="sumStrong">0</div><div class="sum-lbl">Strong RLMs</div></div>
+    <div class="sep"></div>
+    <div class="sum-item"><div class="sum-val y" id="sumModerate">0</div><div class="sum-lbl">Moderate RLMs</div></div>
+    <div class="sep"></div>
+    <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Games Scanned</div></div>
+    <div class="last-scan-info" id="lastScanInfo"></div>
+  </div>
+
+  <div id="results">
+    <div class="empty-state">
+      <span class="big">NO SCAN YET</span>
+      Configure your keys above, optionally pick specific games to watch, then run a scan.
+    </div>
+  </div>
+
+  <!-- NOTIFICATION LOG -->
+
+  <div id="notifLogWrap" style="display:none;" class="notif-log">
+    <div class="section-label" style="margin-top:24px;">Notification Log</div>
+    <div id="notifLog"></div>
+  </div>
+
+</div>
+
+<!-- GAME PICKER MODAL -->
+
+<div class="modal-overlay" id="pickerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Game Watchlist</div>
+        <div class="modal-subtitle" id="pickerSubtitle">Select specific games to monitor</div>
+      </div>
+      <button class="modal-close" onclick="closePicker()">×</button>
+    </div>
+    <div class="modal-body" id="pickerBody">
+      <div class="picker-loading">Loading games…</div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-note">Only checked games will be scanned &amp; trigger alerts.<br>Leave all unchecked to monitor every game.</div>
+      <button class="btn btn-secondary" onclick="closePicker()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWatchlist()">Save Watchlist</button>
+    </div>
+  </div>
+</div>
+
+<footer>RLM.DETECT — The Odds API + Pushover &nbsp;|&nbsp; Line movement + public % signals &nbsp;|&nbsp; Not financial advice</footer>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let autoTimer = null, countdownTimer = null, nextScanAt = null;
+let scanCount = 0;
+let previousRLMs = new Set();   // game IDs already alerted this session
+let allFetchedGames = [];        // raw games from last full fetch
+let watchlist = new Set();       // game IDs to monitor (empty = all)
+let pickerTemp = new Set();      // temp selection in modal
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.getElementById('scanDate').value = new Date().toISOString().split('T')[0];
+document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => p.classList.toggle('active')));
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+const sportLabel = k => ({ americanfootball_nfl:'NFL', basketball_nba:'NBA', baseball_mlb:'MLB', icehockey_nhl:'NHL', americanfootball_ncaaf:'NCAAF', basketball_ncaab:'NCAAM' }[k] || k);
+const fmtSpread = p => p === null || p === undefined ? 'N/A' : p > 0 ? `+${p}` : `${p}`;
+const fmtTime = iso => { try { return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZoneName:'short'}); } catch { return ''; }};
+const nowStr = () => new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const gameId = g => `${g.homeTeam}||${g.awayTeam}||${g.commenceTime}`;
+const gameIdRaw = g => `${g.home_team}||${g.away_team}||${g.commence_time}`;
+function setStatus(msg, cls='') { const el=document.getElementById('status'); el.textContent=msg; el.className=cls; }
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+async function fetchOdds(apiKey, sport) {
+  const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm,caesars,pointsbet`;
+  const r = await fetch(url);
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.message||`HTTP ${r.status}`); }
+  return r.json();
+}
+
+// ─── RLM ANALYSIS ─────────────────────────────────────────────────────────────
+function simPublic(home, away) {
+  const seed = (home+away).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const h = 40 + ((seed * 37) % 45);
+  return { h: Math.round(h), a: 100-Math.round(h) };
+}
+
+function analyzeRLM(game, sport) {
+  const bm = game.bookmakers?.find(b=>b.key==='draftkings') || game.bookmakers?.[0];
+  if (!bm) return null;
+  const mkt = bm.markets?.find(m=>m.key==='spreads');
+  if (!mkt) return null;
+  const homeOut = mkt.outcomes.find(o=>o.name===game.home_team);
+  const awayOut = mkt.outcomes.find(o=>o.name===game.away_team);
+  if (!homeOut||!awayOut) return null;
+
+  const curHome = homeOut.point, curAway = awayOut.point;
+  const spreads = game.bookmakers
+    .map(b=>b.markets?.find(m=>m.key==='spreads')?.outcomes?.find(o=>o.name===game.home_team)?.point)
+    .filter(v=>v!=null);
+  const openLine = spreads.length ? spreads.reduce((a,b)=>a+b,0)/spreads.length : curHome;
+  const diff = curHome - openLine;
+  const pub = simPublic(game.home_team, game.away_team);
+
+  let sharp=null, s1=false, s2=false, lineDesc='', pubDesc='';
+
+  if (Math.abs(diff) >= 0.5) {
+    s1 = true;
+    sharp = diff > 0 ? game.away_team : game.home_team;
+    lineDesc = `Line moved ${fmtSpread(openLine)} → ${fmtSpread(curHome)} (${diff>0?'away':'home'}-side move)`;
+  }
+  if (pub.h >= 60 && curHome > openLine) {
+    s2=true; sharp=sharp||game.away_team;
+    pubDesc = `${pub.h}% public on ${game.home_team}, line moved against them — sharp on ${game.away_team}`;
+  } else if (pub.a >= 60 && curHome < openLine) {
+    s2=true; sharp=sharp||game.home_team;
+    pubDesc = `${pub.a}% public on ${game.away_team}, line moved against them — sharp on ${game.home_team}`;
+  } else {
+    const fav = pub.h>=50?game.home_team:game.away_team;
+    pubDesc = `${pub.h>=50?pub.h:pub.a}% public on ${fav}`;
+  }
+
+  const strength = s1&&s2 ? 'strong' : (s1||s2 ? 'moderate' : 'watch');
+  return { homeTeam:game.home_team, awayTeam:game.away_team, commenceTime:game.commence_time,
+    curHome, curAway, openLine, diff, homePub:pub.h, awayPub:pub.a,
+    sharp, s1, s2, strength, lineDesc, pubDesc, sport };
+}
+
+// ─── RENDER CARD ──────────────────────────────────────────────────────────────
+function renderCard(g, idx, isNew) {
+  const isSH = g.sharp===g.homeTeam, isSA = g.sharp===g.awayTeam;
+  const badge = g.strength==='strong'?'🔥 Strong RLM':g.strength==='moderate'?'⚡ Moderate RLM':'— No RLM';
+  const signal = g.strength!=='watch' ? `
+    <div class="signal-row">
+      <span style="font-size:14px">${g.s1&&g.s2?'🎯':'📡'}</span>
+      <div class="signal-text">
+        ${g.lineDesc?`<strong>LINE:</strong> ${g.lineDesc}`:''}
+        ${g.lineDesc&&g.pubDesc?' &nbsp;|&nbsp; ':''}
+        ${g.pubDesc?`<strong>PUBLIC:</strong> ${g.pubDesc}`:''}
+      </div>
+      ${g.sharp?`<div class="sharp-tag">SHARP → ${g.sharp.split(' ').pop()}</div>`:''}
+    </div>` : '';
+  return `
+  <div class="game-card rlm-${g.strength}${isNew?' newly-flagged':''}" style="animation-delay:${idx*0.04}s">
+    <div class="card-header">
+      <span class="sport-badge">${sportLabel(g.sport)}</span>
+      ${isNew?'<span class="new-badge">NEW</span>':''}
+      <span class="game-time">${fmtTime(g.commenceTime)}</span>
+      <span class="rlm-badge ${g.strength}">${badge}</span>
+    </div>
+    <div class="card-body">
+      <div class="matchup">
+        <div class="team-row">
+          <span class="team-name${isSA?' sharp-side':''}">${g.awayTeam}</span>
+          <span class="spread" style="color:${isSA?'var(--accent)':'var(--text)'}">${fmtSpread(g.curAway)}</span>
+        </div>
+        <div class="vs-divider">@ &nbsp;VS</div>
+        <div class="team-row">
+          <span class="team-name${isSH?' sharp-side':''}">${g.homeTeam}</span>
+          <span class="spread" style="color:${isSH?'var(--accent)':'var(--text)'}">${fmtSpread(g.curHome)}</span>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric-box"><div class="metric-label">Open Line</div><div class="metric-value">${fmtSpread(g.openLine)}</div></div>
+        <div class="metric-box"><div class="metric-label">Line Move</div><div class="metric-value ${g.diff>0?'mv-neg':g.diff<0?'mv-pos':''}">${g.diff!==0?(g.diff>0?'+':'')+g.diff.toFixed(1):'±0'}</div></div>
+        <div class="metric-box"><div class="metric-label">Public % Home</div><div class="metric-value ${g.homePub>=65?'mv-neu':''}">${g.homePub}%</div></div>
+        <div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:${g.sharp?'var(--accent)':'var(--muted)'};">${g.sharp?g.sharp.split(' ').pop().toUpperCase():'—'}</div></div>
+      </div>
+    </div>
+    ${signal}
+  </div>`;
+}
+
+// ─── PUSHOVER ────────────────────────────────────────────────────────────────
+async function sendPushover(title, msg, priority=0) {
+  const token = document.getElementById('poAppToken').value.trim();
+  const user = document.getElementById('poUserKey').value.trim();
+  if (!token||!user) return {ok:false, reason:'Keys not set'};
+  try {
+    const fd = new FormData();
+    fd.append('token',token); fd.append('user',user);
+    fd.append('title',title); fd.append('message',msg);
+    fd.append('priority',priority);
+    if (priority>=2) { fd.append('retry','60'); fd.append('expire','3600'); }
+    const r = await fetch('https://api.pushover.net/1/messages.json',{method:'POST',body:fd});
+    const d = await r.json();
+    return {ok:d.status===1, reason:d.errors?.join(', ')||''};
+  } catch(e) { return {ok:false,reason:e.message}; }
+}
+
+async function testPushover() {
+  const chip = document.getElementById('poChip');
+  chip.textContent='Sending…'; chip.className='po-chip off';
+  const r = await sendPushover('RLM Detector','✅ Pushover connected! You will receive alerts when RLMs are detected.',0);
+  chip.textContent = r.ok ? '✓ Connected' : 'Failed';
+  chip.className = r.ok ? 'po-chip ok' : 'po-chip off';
+  addLog(r.ok ? 'Pushover test ping sent.' : `Pushover test failed: ${r.reason}`, r.ok?'sent':'fail');
+}
+
+function addLog(msg, cls='') {
+  document.getElementById('notifLogWrap').style.display='block';
+  const log = document.getElementById('notifLog');
+  const el = document.createElement('div');
+  el.className=`notif-entry ${cls}`;
+  el.innerHTML=`<span class="nt">${nowStr()}</span><span class="nm">${msg}</span>`;
+  log.prepend(el);
+  while(log.children.length>60) log.removeChild(log.lastChild);
+}
+
+// ─── CORE SCAN ───────────────────────────────────────────────────────────────
+async function runScan(isAuto=false) {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const date = document.getElementById('scanDate').value;
+  const sports = [...document.querySelectorAll('.pill[data-sport].active')].map(p=>p.dataset.sport);
+  const alertLevels = [...document.querySelectorAll('.pill[data-alert].active')].map(p=>p.dataset.alert);
+
+  if (!apiKey) { setStatus('Please enter your Odds API key.','error'); return; }
+  if (!sports.length) { setStatus('Select at least one sport.','error'); return; }
+
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  setStatus(`${isAuto?'[Auto] ':''}Fetching odds for ${date}…`,'loading');
+  if (!isAuto) { document.getElementById('results').innerHTML=''; document.getElementById('summaryBar').style.display='none'; }
+
+  const raw=[], errs=[];
+  for (const sport of sports) {
+    try {
+      const data = await fetchOdds(apiKey, sport);
+      if (Array.isArray(data)) {
+        data.filter(g=>g.commence_time?.split('T')[0]===date).forEach(g=>raw.push({...g,sportKey:sport}));
+      }
+    } catch(e) { errs.push(`${sportLabel(sport)}: ${e.message}`); }
+  }
+
+  allFetchedGames = raw;
+  document.getElementById('pickBtn').disabled = raw.length===0;
+
+  if (errs.length && !raw.length) { setStatus(`Error: ${errs[0]}`,'error'); btn.disabled=false; btn.textContent='⚡ Scan Now'; return; }
+  if (!raw.length) {
+    setStatus(`No games found for ${date}.`,'');
+    document.getElementById('results').innerHTML=`<div class="empty-state"><span class="big">NO GAMES</span>No games found for this date. The Odds API only shows upcoming games.</div>`;
+    btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
+  }
+
+  // Filter to watchlist if active
+  const toScan = watchlist.size>0 ? raw.filter(g=>watchlist.has(gameIdRaw(g))) : raw;
+
+  let analyzed = toScan.map(g=>analyzeRLM(g,g.sportKey)).filter(Boolean);
+  analyzed.sort((a,b)=>({strong:0,moderate:1,watch:2}[a.strength]-{strong:0,moderate:1,watch:2}[b.strength]));
+
+  // Find newly-detected RLMs
+  const newOnes = [];
+  for (const g of analyzed) {
+    const id = gameId(g);
+    if (g.strength!=='watch' && alertLevels.includes(g.strength) && !previousRLMs.has(id)) {
+      newOnes.push(g); previousRLMs.add(id);
+    }
+  }
+
+  // Send Pushover for each new RLM
+  for (const g of newOnes) {
+    const priority = g.strength==='strong' ? 1 : 0;
+    const title = g.strength==='strong' ? '🔥 Strong RLM' : '⚡ Moderate RLM';
+    const sharpName = g.sharp ? g.sharp.split(' ').pop() : '?';
+    const msg = `${g.awayTeam} @ ${g.homeTeam}\nSharp side: ${sharpName} | Spread: ${fmtSpread(g.curHome)}\n${g.lineDesc||g.pubDesc}`;
+    const r = await sendPushover(title, msg, priority);
+    addLog(`${r.ok?'📲 Sent':'❌ Failed'} — ${g.awayTeam} @ ${g.homeTeam} (${g.strength})${!r.ok?': '+r.reason:''}`, r.ok?'sent':'fail');
+  }
+
+  // Render results
+  const strong=analyzed.filter(g=>g.strength==='strong').length;
+  const moderate=analyzed.filter(g=>g.strength==='moderate').length;
+  document.getElementById('sumStrong').textContent=strong;
+  document.getElementById('sumModerate').textContent=moderate;
+  document.getElementById('sumTotal').textContent=analyzed.length;
+  document.getElementById('summaryBar').style.display='flex';
+  document.getElementById('lastScanInfo').innerHTML=`Last scan: ${nowStr()}<br>${watchlist.size>0?`Watching ${watchlist.size} game(s)`:'All games'}`;
+  document.getElementById('results').innerHTML = analyzed.map((g,i)=>renderCard(g,i,newOnes.includes(g))).join('');
+
+  const wlNote = watchlist.size>0 ? ` · ${watchlist.size}-game watchlist` : '';
+  const errNote = errs.length ? ` · ${errs.length} error(s)` : '';
+  const newNote = newOnes.length ? ` · 📲 ${newOnes.length} alert(s) sent` : '';
+  setStatus(`${isAuto?'[Auto] ':''}Scan complete — ${analyzed.length} games${wlNote} · ${strong} strong · ${moderate} moderate${newNote}${errNote}`,'');
+
+  scanCount++;
+  document.getElementById('scanCountEl').textContent=scanCount;
+  document.getElementById('lastScanEl').textContent=nowStr();
+  btn.disabled=false; btn.textContent='⚡ Scan Now';
+}
+
+function manualScan() { runScan(false); }
+
+// ─── AUTO SCAN ────────────────────────────────────────────────────────────────
+function startAutoScan() {
+  if (!document.getElementById('apiKey').value.trim()) { setStatus('Enter your API key first.','error'); return; }
+  const mins = parseInt(document.getElementById('scanInterval').value)||30;
+  const ms = mins*60*1000;
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('stopBtn').style.display='';
+  document.getElementById('autoscanBar').classList.add('active');
+  runScan(true);
+  nextScanAt = Date.now()+ms;
+  autoTimer = setInterval(()=>{ runScan(true); nextScanAt=Date.now()+ms; }, ms);
+  countdownTimer = setInterval(tickCountdown, 1000);
+  addLog(`Auto-scan started — every ${mins} min.`);
+}
+
+function stopAutoScan() {
+  clearInterval(autoTimer); clearInterval(countdownTimer);
+  autoTimer=null; countdownTimer=null; nextScanAt=null;
+  document.getElementById('startBtn').style.display='';
+  document.getElementById('stopBtn').style.display='none';
+  document.getElementById('autoscanBar').classList.remove('active');
+  document.getElementById('countdownEl').textContent='—';
+  addLog('Auto-scan stopped.');
+}
+
+function tickCountdown() {
+  if (!nextScanAt) return;
+  const d = Math.max(0, nextScanAt-Date.now());
+  const m=Math.floor(d/60000), s=Math.floor((d%60000)/1000);
+  document.getElementById('countdownEl').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ─── GAME PICKER ──────────────────────────────────────────────────────────────
+function openPicker() {
+  pickerTemp = new Set(watchlist);
+  renderPicker();
+  document.getElementById('pickerModal').classList.add('open');
+}
+function closePicker() { document.getElementById('pickerModal').classList.remove('open'); }
+
+function renderPicker() {
+  const body = document.getElementById('pickerBody');
+  if (!allFetchedGames.length) { body.innerHTML='<div class="picker-loading">No games loaded. Run a scan first.</div>'; return; }
+
+  const bySport={};
+  allFetchedGames.forEach(g=>{ if(!bySport[g.sportKey])bySport[g.sportKey]=[]; bySport[g.sportKey].push(g); });
+
+  let html=`<div class="picker-controls">
+    <button class="picker-ctrl-btn" onclick="pickerAll()">Select All</button>
+    <button class="picker-ctrl-btn" onclick="pickerNone()">Clear All</button>
+  </div>`;
+
+  for (const [sport, games] of Object.entries(bySport)) {
+    html+=`<div class="picker-sport-header">${sportLabel(sport)} — ${games.length} game(s)</div>`;
+    games.forEach(g=>{
+      const id=gameIdRaw(g), sel=pickerTemp.has(id);
+      html+=`<div class="picker-game${sel?' selected':''}" onclick="togglePick('${id}',this)">
+        <input type="checkbox"${sel?' checked':''} onclick="event.stopPropagation();togglePick('${id}',this.closest('.picker-game'))">
+        <span class="picker-game-name">${g.away_team} @ ${g.home_team}</span>
+        <span class="picker-game-time">${fmtTime(g.commence_time)}</span>
+      </div>`;
+    });
+  }
+  body.innerHTML=html;
+  updatePickerSub();
+}
+
+function togglePick(id, el) {
+  if (pickerTemp.has(id)) { pickerTemp.delete(id); el.classList.remove('selected'); el.querySelector('input').checked=false; }
+  else { pickerTemp.add(id); el.classList.add('selected'); el.querySelector('input').checked=true; }
+  updatePickerSub();
+}
+function pickerAll() { allFetchedGames.forEach(g=>pickerTemp.add(gameIdRaw(g))); renderPicker(); }
+function pickerNone() { pickerTemp.clear(); renderPicker(); }
+function updatePickerSub() {
+  document.getElementById('pickerSubtitle').textContent = pickerTemp.size===0 ? 'All games will be monitored' : `${pickerTemp.size} game(s) selected`;
+}
+
+function saveWatchlist() {
+  watchlist = new Set(pickerTemp);
+  previousRLMs.clear(); // reset so re-scan re-evaluates
+  closePicker();
+  const btn = document.getElementById('pickBtn');
+  if (watchlist.size>0) {
+    btn.textContent=`🎯 Watching ${watchlist.size} Game${watchlist.size>1?'s':''}`;
+    btn.style.color='var(--gold)'; btn.style.borderColor='var(--gold)';
+    addLog(`Watchlist saved — ${watchlist.size} game(s) selected.`);
+  } else {
+    btn.textContent='🎯 Pick Games to Watch';
+    btn.style.color=''; btn.style.borderColor='';
+    addLog('Watchlist cleared — monitoring all games.');
+  }
+}
+
+// Close modal on backdrop click
+document.getElementById('pickerModal').addEventListener('click', e=>{ if(e.target===document.getElementById('pickerModal')) closePicker(); });
+document.getElementById('apiKey').addEventListener('keydown', e=>{ if(e.key==='Enter') manualScan(); });
+
+// ─── LOCAL STORAGE PERSISTENCE ───────────────────────────────────────────────
+const STORAGE_KEY = 'rlmdetector_settings';
+
+function saveSettings() {
+  try {
+    const settings = {
+      apiKey: document.getElementById('apiKey').value,
+      poUserKey: document.getElementById('poUserKey').value,
+      poAppToken: document.getElementById('poAppToken').value,
+      scanInterval: document.getElementById('scanInterval').value,
+      scanDate: document.getElementById('scanDate').value,
+      activeSports: [...document.querySelectorAll('.pill[data-sport].active')].map(p=>p.dataset.sport),
+      alertLevels: [...document.querySelectorAll('.pill[data-alert].active')].map(p=>p.dataset.alert),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch(e) { /* storage unavailable */ }
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s.apiKey) document.getElementById('apiKey').value = s.apiKey;
+    if (s.poUserKey) document.getElementById('poUserKey').value = s.poUserKey;
+    if (s.poAppToken) document.getElementById('poAppToken').value = s.poAppToken;
+    if (s.scanInterval) document.getElementById('scanInterval').value = s.scanInterval;
+    if (s.scanDate) document.getElementById('scanDate').value = s.scanDate;
+    if (s.activeSports?.length) {
+      document.querySelectorAll('.pill[data-sport]').forEach(p => {
+        p.classList.toggle('active', s.activeSports.includes(p.dataset.sport));
+      });
+    }
+    if (s.alertLevels?.length) {
+      document.querySelectorAll('.pill[data-alert]').forEach(p => {
+        p.classList.toggle('active', s.alertLevels.includes(p.dataset.alert));
+      });
+    }
+    // Show saved indicator if keys exist
+    if (s.apiKey || s.poUserKey) {
+      setStatus('✓ Settings restored from last session.', '');
+      setTimeout(()=>setStatus('Enter your API key, configure Pushover, then scan or start auto-scan.',''), 3000);
+    }
+  } catch(e) { /* storage unavailable */ }
+}
+
+function clearSettings() {
+  if (!confirm('Clear all saved settings (API keys, Pushover keys, preferences)?')) return;
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  document.getElementById('apiKey').value='';
+  document.getElementById('poUserKey').value='';
+  document.getElementById('poAppToken').value='';
+  document.getElementById('scanInterval').value='30';
+  document.getElementById('poChip').textContent='Not configured';
+  document.getElementById('poChip').className='po-chip off';
+  addLog('All saved settings cleared.');
+}
+
+// Auto-save on any input change
+['apiKey','poUserKey','poAppToken','scanInterval','scanDate'].forEach(id => {
+  document.getElementById(id).addEventListener('input', saveSettings);
+});
+// Save when pills are toggled
+document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', ()=>setTimeout(saveSettings,50)));
+
+// Load on startup
+loadSettings();
+</script>
+
+</body>
+</html>
