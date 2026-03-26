@@ -354,7 +354,8 @@ document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () =
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 const sportLabel = k => ({ americanfootball_nfl:'NFL', basketball_nba:'NBA', baseball_mlb:'MLB', icehockey_nhl:'NHL', americanfootball_ncaaf:'NCAAF', basketball_ncaab:'NCAAM' }[k] || k);
-const fmtSpread = p => { if (p === null || p === undefined) return 'N/A'; const r = Math.round(p * 10) / 10; return r > 0 ? `+${r.toFixed(1)}` : `${r.toFixed(1)}`; };
+const fmtSpread = p => { if (p === null || p === undefined) return 'N/A'; const r = Math.round(p * 2) / 2; return r > 0 ? `+${r.toFixed(1)}` : `${r.toFixed(1)}`; };
+const roundHalf = p => Math.round(p * 2) / 2;
 const fmtTime = iso => { try { return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZoneName:'short'}); } catch { return ''; }};
 const nowStr = () => new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 const gameId = g => `${g.homeTeam}||${g.awayTeam}||${g.commenceTime}`;
@@ -397,33 +398,35 @@ function updateCreditsDisplay() {
   el.innerHTML = `API Credits: <span style="color:${color};font-weight:500;">${rem.toLocaleString()} remaining</span> · ${used.toLocaleString()} used`;
 }
 
-// Returns { events: [...all games], oddsMap: { id -> gameWithOdds } }
-async function fetchAllGamesForSport(apiKey, sport, date) {
-  // Step 1: /events — returns every scheduled game, free, no quota cost
-  const evUrl = `https://api.the-odds-api.com/v4/sports/${sport}/events?apiKey=${apiKey}&commenceTimeFrom=${date}T00:00:00Z&commenceTimeTo=${date}T23:59:59Z`;
-  const events = await fetchWithRetry(evUrl);
-  if (!events.length) return { events: [], oddsMap: {} };
+// Step 1 only: fetch events for a sport (FREE — no credit cost)
+async function fetchEventsForSport(apiKey, sport, date) {
+  const url = `https://api.the-odds-api.com/v4/sports/${sport}/events?apiKey=${apiKey}&commenceTimeFrom=${date}T00:00:00Z&commenceTimeTo=${date}T23:59:59Z`;
+  try {
+    const events = await fetchWithRetry(url);
+    return Array.isArray(events) ? events : [];
+  } catch(e) {
+    console.warn(`Events fetch failed for ${sport}:`, e.message);
+    return [];
+  }
+}
 
-  // Step 2: /odds with all event IDs — silently returns only what bookmakers have
-  // Chunk into groups of 10 to avoid URL length limits and reduce 429 risk
+// Step 2 only: fetch odds for a list of known event IDs (costs credits)
+async function fetchOddsForEvents(apiKey, sport, events) {
   const chunkSize = 10;
   const oddsMap = {};
   for (let i = 0; i < events.length; i += chunkSize) {
     const chunk = events.slice(i, i + chunkSize);
     const ids = chunk.map(e => e.id).join(',');
-    const oddsUrl = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american&eventIds=${ids}`;
+    const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american&eventIds=${ids}`;
     try {
-      const oddsData = await fetchWithRetry(oddsUrl);
-      oddsData.forEach(g => { oddsMap[g.id] = g; });
+      const data = await fetchWithRetry(url);
+      data.forEach(g => { oddsMap[g.id] = g; });
     } catch(e) {
-      // Odds chunk failed — events still appear as unevaluated
       console.warn(`Odds chunk failed for ${sport}:`, e.message);
     }
-    // Small delay between chunks to avoid rate limiting
     if (i + chunkSize < events.length) await new Promise(r => setTimeout(r, 300));
   }
-
-  return { events, oddsMap };
+  return oddsMap;
 }
 
 // ─── RLM ANALYSIS ─────────────────────────────────────────────────────────────
@@ -442,12 +445,14 @@ function analyzeRLM(game, sport) {
   const awayOut = mkt.outcomes.find(o=>o.name===game.away_team);
   if (!homeOut||!awayOut) return null;
 
-  const curHome = homeOut.point, curAway = awayOut.point;
+  const curHome = roundHalf(homeOut.point), curAway = roundHalf(awayOut.point);
   const spreads = game.bookmakers
     .map(b=>b.markets?.find(m=>m.key==='spreads')?.outcomes?.find(o=>o.name===game.home_team)?.point)
     .filter(v=>v!=null);
-  const openLine = spreads.length ? spreads.reduce((a,b)=>a+b,0)/spreads.length : curHome;
-  const diff = curHome - openLine;
+  // Round each book's spread to nearest 0.5 before averaging, then round result
+  const roundedSpreads = spreads.map(s => roundHalf(s));
+  const openLine = roundedSpreads.length ? roundHalf(roundedSpreads.reduce((a,b)=>a+b,0)/roundedSpreads.length) : curHome;
+  const diff = roundHalf(curHome - openLine);
   const pub = simPublic(game.home_team, game.away_team);
 
   let sharp=null, s1=false, s2=false, lineDesc='', pubDesc='';
@@ -596,16 +601,45 @@ async function runScan(isAuto=false) {
   setStatus(`${isAuto?'[Auto] ':''}Fetching all games for ${date}…`,'loading');
   if (!isAuto) { document.getElementById('results').innerHTML=''; document.getElementById('summaryBar').style.display='none'; }
 
-  // Collect all events + odds across sports
-  const allEvents = [];   // every scheduled game (from /events)
-  const allOddsMap = {};  // id -> game with odds (from /odds, may be partial)
+  // ── PHASE 1: Smart detection — call /events for all sports (FREE, no credit cost)
+  // Only sports with games today will proceed to the paid /odds call
+  const allEvents = [];
+  const allOddsMap = {};
   const errs = [];
+  const sportEventMap = {}; // sport -> events[]
 
-  for (const sport of sports) {
+  setStatus(`${isAuto?'[Auto] ':''}Detecting active sports (free)…`, 'loading');
+  await Promise.all(sports.map(async sport => {
+    const events = await fetchEventsForSport(apiKey, sport, date);
+    sportEventMap[sport] = events;
+    events.forEach(ev => allEvents.push({ ...ev, sportKey: sport }));
+  }));
+
+  const activeSports = sports.filter(s => sportEventMap[s]?.length > 0);
+  const skippedSports = sports.filter(s => !sportEventMap[s]?.length);
+
+  // Update pills visually — dim sports with no games today
+  sports.forEach(sport => {
+    const pill = document.querySelector(`.pill[data-sport="${sport}"]`);
+    if (!pill) return;
+    if (skippedSports.includes(sport)) {
+      pill.style.opacity = '0.4';
+      pill.title = 'No games today — skipped to save credits';
+    } else {
+      pill.style.opacity = '';
+      pill.title = `${sportEventMap[sport].length} game(s) today`;
+    }
+  });
+
+  if (activeSports.length) {
+    addLog(`Smart detection: ${activeSports.map(s=>sportLabel(s)).join(', ')} active (${skippedSports.length} sport(s) skipped — no games).`);
+  }
+
+  // ── PHASE 2: Fetch odds ONLY for sports that have games (costs credits)
+  for (const sport of activeSports) {
     try {
-      setStatus(`${isAuto?'[Auto] ':''}Fetching ${sportLabel(sport)}…`, 'loading');
-      const { events, oddsMap } = await fetchAllGamesForSport(apiKey, sport, date);
-      events.forEach(ev => allEvents.push({ ...ev, sportKey: sport }));
+      setStatus(`${isAuto?'[Auto] ':''}Fetching odds — ${sportLabel(sport)} (${sportEventMap[sport].length} games)…`, 'loading');
+      const oddsMap = await fetchOddsForEvents(apiKey, sport, sportEventMap[sport]);
       Object.assign(allOddsMap, oddsMap);
     } catch(e) {
       errs.push(`${sportLabel(sport)}: ${e.message}`);
