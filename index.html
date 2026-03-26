@@ -294,7 +294,7 @@ footer { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(–border)
     <div class="sep"></div>
     <div class="sum-item"><div class="sum-val y" id="sumModerate">0</div><div class="sum-lbl">Moderate RLMs</div></div>
     <div class="sep"></div>
-    <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Games Scanned</div></div>
+    <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Total Games</div></div>
     <div class="last-scan-info" id="lastScanInfo"></div>
   </div>
 
@@ -361,20 +361,50 @@ const gameIdRaw = g => `${g.home_team}||${g.away_team}||${g.commence_time}`;
 function setStatus(msg, cls='') { const el=document.getElementById('status'); el.textContent=msg; el.className=cls; }
 
 // ─── API ──────────────────────────────────────────────────────────────────────
-async function fetchOdds(apiKey, sport, date) {
-  // Step 1: get ALL event IDs for this sport on this date (bypasses major-book filter)
-  const evUrl = `https://api.the-odds-api.com/v4/sports/${sport}/events?apiKey=${apiKey}&commenceTimeFrom=${date}T00:00:00Z&commenceTimeTo=${date}T23:59:59Z`;
-  const evResp = await fetch(evUrl);
-  if (!evResp.ok) { const e = await evResp.json().catch(()=>({})); throw new Error(e.message||`HTTP ${evResp.status}`); }
-  const events = await evResp.json();
-  if (!events.length) return [];
 
-  // Step 2: fetch odds for all those IDs in one call
-  const ids = events.map(e => e.id).join(',');
-  const oddsUrl = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american&eventIds=${ids}`;
-  const oddsResp = await fetch(oddsUrl);
-  if (!oddsResp.ok) { const e = await oddsResp.json().catch(()=>({})); throw new Error(e.message||`HTTP ${oddsResp.status}`); }
-  return oddsResp.json();
+// Retry a fetch up to maxRetries times on 429, with exponential backoff
+async function fetchWithRetry(url, maxRetries=3) {
+  let delay = 2000;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const resp = await fetch(url);
+    if (resp.status === 429) {
+      if (attempt === maxRetries) throw new Error('Rate limited (429) after retries');
+      await new Promise(r => setTimeout(r, delay));
+      delay *= 2;
+      continue;
+    }
+    if (!resp.ok) { const e = await resp.json().catch(()=>({})); throw new Error(e.message||`HTTP ${resp.status}`); }
+    return resp.json();
+  }
+}
+
+// Returns { events: [...all games], oddsMap: { id -> gameWithOdds } }
+async function fetchAllGamesForSport(apiKey, sport, date) {
+  // Step 1: /events — returns every scheduled game, free, no quota cost
+  const evUrl = `https://api.the-odds-api.com/v4/sports/${sport}/events?apiKey=${apiKey}&commenceTimeFrom=${date}T00:00:00Z&commenceTimeTo=${date}T23:59:59Z`;
+  const events = await fetchWithRetry(evUrl);
+  if (!events.length) return { events: [], oddsMap: {} };
+
+  // Step 2: /odds with all event IDs — silently returns only what bookmakers have
+  // Chunk into groups of 10 to avoid URL length limits and reduce 429 risk
+  const chunkSize = 10;
+  const oddsMap = {};
+  for (let i = 0; i < events.length; i += chunkSize) {
+    const chunk = events.slice(i, i + chunkSize);
+    const ids = chunk.map(e => e.id).join(',');
+    const oddsUrl = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=spreads&oddsFormat=american&eventIds=${ids}`;
+    try {
+      const oddsData = await fetchWithRetry(oddsUrl);
+      oddsData.forEach(g => { oddsMap[g.id] = g; });
+    } catch(e) {
+      // Odds chunk failed — events still appear as unevaluated
+      console.warn(`Odds chunk failed for ${sport}:`, e.message);
+    }
+    // Small delay between chunks to avoid rate limiting
+    if (i + chunkSize < events.length) await new Promise(r => setTimeout(r, 300));
+  }
+
+  return { events, oddsMap };
 }
 
 // ─── RLM ANALYSIS ─────────────────────────────────────────────────────────────
@@ -506,6 +536,32 @@ function addLog(msg, cls='') {
   while(log.children.length>60) log.removeChild(log.lastChild);
 }
 
+// ─── UNEVALUATED CARD ────────────────────────────────────────────────────────
+function renderUnevaluatedCard(ev, sport, idx) {
+  return `
+  <div class="game-card rlm-watch" style="animation-delay:${idx*0.04}s;opacity:0.55;">
+    <div class="card-header">
+      <span class="sport-badge">${sportLabel(sport)}</span>
+      <span class="game-time">${fmtTime(ev.commence_time)}</span>
+      <span class="rlm-badge watch" style="color:var(--muted);border-color:var(--border);">⚠ No Odds Data</span>
+    </div>
+    <div class="card-body" style="align-items:center;">
+      <div class="matchup">
+        <div class="team-row">
+          <span class="team-name" style="color:var(--muted);">${ev.away_team}</span>
+        </div>
+        <div class="vs-divider">@ &nbsp;VS</div>
+        <div class="team-row">
+          <span class="team-name" style="color:var(--muted);">${ev.home_team}</span>
+        </div>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;flex:1;">
+        No spread odds available from bookmakers at this time — cannot evaluate for RLM.
+      </div>
+    </div>
+  </div>`;
+}
+
 // ─── CORE SCAN ───────────────────────────────────────────────────────────────
 async function runScan(isAuto=false) {
   const apiKey = document.getElementById('apiKey').value.trim();
@@ -518,34 +574,50 @@ async function runScan(isAuto=false) {
 
   const btn = document.getElementById('scanBtn');
   btn.disabled = true;
-  setStatus(`${isAuto?'[Auto] ':''}Fetching odds for ${date}…`,'loading');
+  setStatus(`${isAuto?'[Auto] ':''}Fetching all games for ${date}…`,'loading');
   if (!isAuto) { document.getElementById('results').innerHTML=''; document.getElementById('summaryBar').style.display='none'; }
 
-  const raw=[], errs=[];
+  // Collect all events + odds across sports
+  const allEvents = [];   // every scheduled game (from /events)
+  const allOddsMap = {};  // id -> game with odds (from /odds, may be partial)
+  const errs = [];
+
   for (const sport of sports) {
     try {
-      const data = await fetchOdds(apiKey, sport, date);
-      if (Array.isArray(data)) {
-        data.forEach(g=>raw.push({...g,sportKey:sport}));
-      }
-    } catch(e) { errs.push(`${sportLabel(sport)}: ${e.message}`); }
+      setStatus(`${isAuto?'[Auto] ':''}Fetching ${sportLabel(sport)}…`, 'loading');
+      const { events, oddsMap } = await fetchAllGamesForSport(apiKey, sport, date);
+      events.forEach(ev => allEvents.push({ ...ev, sportKey: sport }));
+      Object.assign(allOddsMap, oddsMap);
+    } catch(e) {
+      errs.push(`${sportLabel(sport)}: ${e.message}`);
+    }
   }
 
-  allFetchedGames = raw;
-  document.getElementById('pickBtn').disabled = raw.length===0;
+  allFetchedGames = allEvents.map(ev => allOddsMap[ev.id] ? { ...allOddsMap[ev.id], sportKey: ev.sportKey } : null).filter(Boolean);
+  document.getElementById('pickBtn').disabled = allEvents.length === 0;
 
-  if (errs.length && !raw.length) { setStatus(`Error: ${errs[0]}`,'error'); btn.disabled=false; btn.textContent='⚡ Scan Now'; return; }
-  if (!raw.length) {
-    setStatus(`No games found for ${date}.`,'');
-    document.getElementById('results').innerHTML=`<div class="empty-state"><span class="big">NO GAMES</span>No games found for this date. The Odds API only shows upcoming games.</div>`;
+  if (errs.length && !allEvents.length) {
+    setStatus(`Error: ${errs[0]}`, 'error');
+    btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
+  }
+  if (!allEvents.length) {
+    setStatus(`No games found for ${date}.`, '');
+    document.getElementById('results').innerHTML=`<div class="empty-state"><span class="big">NO GAMES</span>No games found for this date.</div>`;
     btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
   }
 
-  // Filter to watchlist if active
-  const toScan = watchlist.size>0 ? raw.filter(g=>watchlist.has(gameIdRaw(g))) : raw;
+  // Split into: has odds vs no odds
+  const withOdds = allEvents.filter(ev => allOddsMap[ev.id]);
+  const noOdds   = allEvents.filter(ev => !allOddsMap[ev.id]);
 
-  let analyzed = toScan.map(g=>analyzeRLM(g,g.sportKey)).filter(Boolean);
-  analyzed.sort((a,b)=>({strong:0,moderate:1,watch:2}[a.strength]-{strong:0,moderate:1,watch:2}[b.strength]));
+  // Filter to watchlist if active (only affects odds-evaluated games)
+  const toScan = watchlist.size > 0
+    ? withOdds.filter(ev => watchlist.has(`${ev.home_team}||${ev.away_team}||${ev.commence_time}`))
+    : withOdds;
+
+  // Analyze RLMs
+  let analyzed = toScan.map(ev => analyzeRLM(allOddsMap[ev.id], ev.sportKey)).filter(Boolean);
+  analyzed.sort((a,b) => ({strong:0, moderate:1, watch:2}[a.strength] - {strong:0, moderate:1, watch:2}[b.strength]));
 
   // Find newly-detected RLMs
   const newOnes = [];
@@ -556,7 +628,7 @@ async function runScan(isAuto=false) {
     }
   }
 
-  // Send Pushover for each new RLM
+  // Send Pushover for new RLMs
   for (const g of newOnes) {
     const priority = g.strength==='strong' ? 1 : 0;
     const title = g.strength==='strong' ? '🔥 Strong RLM' : '⚡ Moderate RLM';
@@ -566,24 +638,38 @@ async function runScan(isAuto=false) {
     addLog(`${r.ok?'📲 Sent':'❌ Failed'} — ${g.awayTeam} @ ${g.homeTeam} (${g.strength})${!r.ok?': '+r.reason:''}`, r.ok?'sent':'fail');
   }
 
-  // Render results
-  const strong=analyzed.filter(g=>g.strength==='strong').length;
-  const moderate=analyzed.filter(g=>g.strength==='moderate').length;
-  document.getElementById('sumStrong').textContent=strong;
-  document.getElementById('sumModerate').textContent=moderate;
-  document.getElementById('sumTotal').textContent=analyzed.length;
-  document.getElementById('summaryBar').style.display='flex';
-  document.getElementById('lastScanInfo').innerHTML=`Last scan: ${nowStr()}<br>${watchlist.size>0?`Watching ${watchlist.size} game(s)`:'All games'}`;
-  document.getElementById('results').innerHTML = analyzed.map((g,i)=>renderCard(g,i,newOnes.includes(g))).join('');
+  // Render: RLM cards first, then no-odds cards at the bottom
+  const strong   = analyzed.filter(g=>g.strength==='strong').length;
+  const moderate = analyzed.filter(g=>g.strength==='moderate').length;
 
-  const wlNote = watchlist.size>0 ? ` · ${watchlist.size}-game watchlist` : '';
-  const errNote = errs.length ? ` · ${errs.length} error(s)` : '';
+  document.getElementById('sumStrong').textContent = strong;
+  document.getElementById('sumModerate').textContent = moderate;
+  document.getElementById('sumTotal').textContent = allEvents.length;
+  document.getElementById('summaryBar').style.display = 'flex';
+  document.getElementById('lastScanInfo').innerHTML =
+    `Last scan: ${nowStr()}<br>${allEvents.length} total · ${withOdds.length} evaluated · ${noOdds.length} no odds`;
+
+  const rlmCards = analyzed.map((g,i) => renderCard(g, i, newOnes.includes(g))).join('');
+  const noOddsCards = noOdds.map((ev,i) => renderUnevaluatedCard(ev, ev.sportKey, analyzed.length + i)).join('');
+
+  // Section divider if there are unevaluated games
+  const divider = noOdds.length > 0 ? `
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;
+      padding:12px 0 8px;border-top:1px solid var(--border);margin-top:8px;">
+      ⚠ ${noOdds.length} game(s) found but not evaluated — no bookmaker odds available
+    </div>` : '';
+
+  document.getElementById('results').innerHTML = rlmCards + divider + noOddsCards;
+
+  const wlNote  = watchlist.size>0 ? ` · ${watchlist.size}-game watchlist` : '';
+  const errNote = errs.length ? ` · ${errs.length} sport error(s)` : '';
   const newNote = newOnes.length ? ` · 📲 ${newOnes.length} alert(s) sent` : '';
-  setStatus(`${isAuto?'[Auto] ':''}Scan complete — ${analyzed.length} games${wlNote} · ${strong} strong · ${moderate} moderate${newNote}${errNote}`,'');
+  const noOddsNote = noOdds.length ? ` · ${noOdds.length} no odds` : '';
+  setStatus(`${isAuto?'[Auto] ':''}Scan complete — ${allEvents.length} games (${withOdds.length} evaluated${noOddsNote})${wlNote} · ${strong} strong · ${moderate} moderate RLMs${newNote}${errNote}`, '');
 
   scanCount++;
-  document.getElementById('scanCountEl').textContent=scanCount;
-  document.getElementById('lastScanEl').textContent=nowStr();
+  document.getElementById('scanCountEl').textContent = scanCount;
+  document.getElementById('lastScanEl').textContent = nowStr();
   btn.disabled=false; btn.textContent='⚡ Scan Now';
 }
 
