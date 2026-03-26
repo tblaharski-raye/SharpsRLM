@@ -702,9 +702,9 @@ async function runScan(isAuto=false) {
   if (!apiKey) { setStatus('Please enter your Odds API key.','error'); return; }
   if (!sports.length) { setStatus('Select at least one sport.','error'); return; }
 
-  const btn = document.getElementById('scanBtn');
-  btn.disabled = true;
-  setStatus(`${isAuto?'[Auto] ':''}Fetching all games for ${date}…`,'loading');
+  const btn = document.getElementById('loadBtn');
+  if (btn) btn.disabled = true;
+  setStatus(`${isAuto?'[Auto] ':''}Scanning selected games…`,'loading');
   if (!isAuto) { document.getElementById('results').innerHTML=''; document.getElementById('summaryBar').style.display='none'; }
 
   // Games were pre-loaded via loadGames() — use watchlist to determine what to scan
@@ -713,7 +713,7 @@ async function runScan(isAuto=false) {
 
   if (watchlist.size === 0) {
     setStatus('No games selected — use Step 2 to select games first.', 'error');
-    btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
+    if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; } return;
   }
 
   // Get the watchlist events from allFetchedGames
@@ -723,7 +723,7 @@ async function runScan(isAuto=false) {
 
   if (!watchlistEvents.length) {
     setStatus('Watchlist games not found — reload games first.', 'error');
-    btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
+    if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; } return;
   }
 
   // Group watchlist events by sport for efficient fetching
@@ -751,12 +751,12 @@ async function runScan(isAuto=false) {
 
   if (errs.length && !allEvents.length) {
     setStatus(`Error: ${errs[0]}`, 'error');
-    btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
+    if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; } return;
   }
   if (!allEvents.length) {
     setStatus(`No games found for ${date}.`, '');
     document.getElementById('results').innerHTML=`<div class="empty-state"><span class="big">NO GAMES</span>No games found for this date.</div>`;
-    btn.disabled=false; btn.textContent='⚡ Scan Now'; return;
+    if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; } return;
   }
 
   // Split into: has odds vs no odds (all events are from watchlist)
@@ -819,7 +819,7 @@ async function runScan(isAuto=false) {
   scanCount++;
   document.getElementById('scanCountEl').textContent = scanCount;
   document.getElementById('lastScanEl').textContent = nowStr();
-  btn.disabled=false; btn.textContent='⚡ Scan Now';
+  if (btn) { btn.disabled=false; btn.textContent='⬇ Load Games'; }
 }
 
 // ─── LOAD GAMES (Step 1 — free, no odds cost) ────────────────────────────────
