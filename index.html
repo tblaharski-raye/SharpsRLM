@@ -11,6 +11,7 @@
 :root {
   --bg:#0a0c0f; --surface:#111318; --surface2:#181c24; --border:#1e2530;
   --accent:#00e5ff; --accent2:#ff3d5a; --gold:#ffd166; --green:#06d6a0;
+  --ev:#a8ff78;
   --text:#e8edf5; --muted:#5a6478;
   --mono:'IBM Plex Mono',monospace; --display:'Barlow Condensed',sans-serif;
 }
@@ -85,6 +86,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4;}
 .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .dot-strong{background:var(–accent2);box-shadow:0 0 6px var(–accent2);}
 .dot-moderate{background:var(–gold);box-shadow:0 0 6px var(–gold);}
+.dot-ev{background:var(–ev);box-shadow:0 0 6px var(–ev);}
 .dot-watch{background:var(–muted);}
 
 #status{font-family:var(–mono);font-size:12px;color:var(–muted);margin-bottom:8px;min-height:18px;letter-spacing:.05em;}
@@ -96,7 +98,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4;}
 .sum-item{display:flex;flex-direction:column;gap:2px;}
 .sum-val{font-size:28px;font-weight:700;line-height:1;}
 .sum-lbl{font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.1em;text-transform:uppercase;}
-.sum-val.r{color:var(–accent2);} .sum-val.y{color:var(–gold);} .sum-val.b{color:var(–accent);}
+.sum-val.r{color:var(–accent2);} .sum-val.y{color:var(–gold);} .sum-val.b{color:var(–accent);} .sum-val.ev{color:var(–ev);}
 .sep{width:1px;background:var(–border);align-self:stretch;margin:0 4px;}
 .last-scan-info{font-family:var(–mono);font-size:10px;color:var(–muted);margin-left:auto;line-height:1.7;text-align:right;}
 
@@ -106,13 +108,17 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 .game-card.rlm-strong{border-color:var(–accent2);}
 .game-card.rlm-moderate{border-color:var(–gold);}
+.game-card.has-ev{box-shadow:0 0 0 1px var(–ev);}
 .game-card.newly-flagged{animation:fadeUp .3s ease both,flashNew 1.5s ease .3s;}
 @keyframes flashNew{0%{box-shadow:0 0 0 3px rgba(255,61,90,.5);}100%{box-shadow:none;}}
+.game-card.has-ev.newly-flagged{animation:fadeUp .3s ease both,flashEV 1.5s ease .3s;}
+@keyframes flashEV{0%{box-shadow:0 0 0 3px rgba(168,255,120,.6);}100%{box-shadow:0 0 0 1px var(–ev);}}
 
 .card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(–border);gap:10px;flex-wrap:wrap;}
 .sport-badge{font-family:var(–mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:var(–surface2);color:var(–muted);border:1px solid var(–border);flex-shrink:0;}
 .game-time{font-family:var(–mono);font-size:11px;color:var(–muted);margin-left:auto;}
 .new-badge{font-family:var(–mono);font-size:9px;color:var(–bg);background:var(–accent2);padding:2px 7px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;}
+.ev-badge{font-family:var(–mono);font-size:9px;color:var(–bg);background:var(–ev);padding:2px 7px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;}
 .rlm-badge{font-family:var(–mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:2px;flex-shrink:0;}
 .rlm-badge.strong{background:rgba(255,61,90,.15);color:var(–accent2);border:1px solid var(–accent2);}
 .rlm-badge.moderate{background:rgba(255,209,102,.12);color:var(–gold);border:1px solid var(–gold);}
@@ -127,13 +133,20 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4;}
 .vs-divider{font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.1em;}
 .metrics{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;}
 .metric-box{background:var(–surface2);border:1px solid var(–border);border-radius:3px;padding:10px 14px;min-width:100px;display:flex;flex-direction:column;gap:4px;}
+.metric-box.ev-box{border-color:var(–ev);background:rgba(168,255,120,.06);}
 .metric-label{font-family:var(–mono);font-size:9px;color:var(–muted);letter-spacing:.15em;text-transform:uppercase;}
 .metric-value{font-family:var(–mono);font-size:20px;font-weight:500;line-height:1;}
-.mv-pos{color:var(–green);} .mv-neg{color:var(–accent2);} .mv-neu{color:var(–gold);}
+.mv-pos{color:var(–green);} .mv-neg{color:var(–accent2);} .mv-neu{color:var(–gold);} .mv-ev{color:var(–ev);}
 .signal-row{padding:10px 16px;background:var(–surface2);border-top:1px solid var(–border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .signal-text{font-family:var(–mono);font-size:11px;color:var(–muted);flex:1;}
 .signal-text strong{color:var(–text);}
 .sharp-tag{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;}
+
+/* +EV detail row */
+.ev-row{padding:9px 16px;background:rgba(168,255,120,.05);border-top:1px solid rgba(168,255,120,.15);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.ev-row-label{font-family:var(–mono);font-size:9px;color:var(–ev);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;}
+.ev-book-chip{font-family:var(–mono);font-size:11px;padding:3px 10px;border-radius:2px;border:1px solid rgba(168,255,120,.35);color:var(–ev);background:rgba(168,255,120,.06);white-space:nowrap;}
+.ev-book-chip span{color:rgba(168,255,120,.6);margin:0 3px;}
 
 .empty-state{text-align:center;padding:60px 20px;color:var(–muted);font-family:var(–mono);font-size:13px;border:1px dashed var(–border);border-radius:4px;}
 .empty-state .big{font-size:36px;font-family:var(–display);font-weight:900;color:var(–surface2);display:block;margin-bottom:12px;}
@@ -179,9 +192,9 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-f
 <div class="wrap">
 
 <header>
-  <div class="logo-eyebrow">// sharp money scanner v3</div>
+  <div class="logo-eyebrow">// sharp money scanner v4 — RLM + EV</div>
   <div class="logo">RLM<span>.</span>DETECT</div>
-  <div class="logo-sub">load games &middot; select watchlist &middot; auto-scan &middot; pushover alerts</div>
+  <div class="logo-sub">load games &middot; select watchlist &middot; auto-scan &middot; pushover alerts &middot; +ev detection</div>
 </header>
 
 <div class="section-label">Configuration</div>
@@ -227,6 +240,7 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-f
     <span class="row-label">Notify on:</span>
     <div class="pill active" data-alert="strong">&#x1F525; Strong RLM</div>
     <div class="pill active" data-alert="moderate">&#x26A1; Moderate RLM</div>
+    <div class="pill active" data-alert="ev">&#x1F4B0; +EV Only</div>
   </div>
 
   <!-- 3-STEP WORKFLOW -->
@@ -263,8 +277,9 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-f
 </div>
 
 <div class="legend">
-  <div class="legend-item"><div class="dot dot-strong"></div> Strong RLM &mdash; Pinnacle diverges from soft books AND confirms public/sharp split</div>
+  <div class="legend-item"><div class="dot dot-strong"></div> Strong RLM &mdash; Pinnacle diverges AND confirms public/sharp split</div>
   <div class="legend-item"><div class="dot dot-moderate"></div> Moderate RLM &mdash; Pinnacle diverges 0.5+ pts from soft books</div>
+  <div class="legend-item"><div class="dot dot-ev"></div> +EV &mdash; Soft book odds better than Pinnacle no-vig price</div>
   <div class="legend-item"><div class="dot dot-watch"></div> No divergence</div>
 </div>
 
@@ -275,6 +290,8 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-f
   <div class="sum-item"><div class="sum-val r" id="sumStrong">0</div><div class="sum-lbl">Strong RLMs</div></div>
   <div class="sep"></div>
   <div class="sum-item"><div class="sum-val y" id="sumModerate">0</div><div class="sum-lbl">Moderate RLMs</div></div>
+  <div class="sep"></div>
+  <div class="sum-item"><div class="sum-val ev" id="sumEV">0</div><div class="sum-lbl">+EV Spots</div></div>
   <div class="sep"></div>
   <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Games Watching</div></div>
   <div class="last-scan-info" id="lastScanInfo"></div>
@@ -316,13 +333,14 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-f
   </div>
 </div>
 
-<footer>RLM.DETECT &mdash; The Odds API + Pushover &nbsp;|&nbsp; Pinnacle vs soft book divergence &nbsp;|&nbsp; Not financial advice</footer>
+<footer>RLM.DETECT v4 &mdash; The Odds API + Pushover &nbsp;|&nbsp; Pinnacle vs soft book divergence &nbsp;|&nbsp; +EV detection via no-vig pricing &nbsp;|&nbsp; Not financial advice</footer>
 
 <script>
 // ─── STATE ───────────────────────────────────────────────────────────────────
 var autoTimer = null, countdownTimer = null, nextScanAt = null;
 var scanCount = 0;
 var previousRLMs = new Set();
+var previousEVs  = new Set();
 var allFetchedGames = [];
 var watchlist = new Set();
 var pickerTemp = new Set();
@@ -349,22 +367,178 @@ function fmtTime(iso) {
 }
 function nowStr() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
 function gameId(g) { return g.homeTeam + '||' + g.awayTeam + '||' + g.commenceTime; }
-function gameIdRaw(g) { return g.home_team + '||' + g.away_team + '||' + g.commence_time; }
 function setStatus(msg, cls) { var el = document.getElementById('status'); el.textContent = msg; el.className = cls || ''; }
 
-// Fuzzy team name matching between ESPN and Odds API
-// ESPN: "Los Angeles Lakers", Odds API: "Los Angeles Lakers" (usually same but not always)
+// ─── TEAM ALIAS MAP ──────────────────────────────────────────────────────────
+// Maps any known variant → canonical key. Both ESPN and Odds API names included.
+var TEAM_ALIASES = (function() {
+  var raw = [
+    // NFL
+    ['arizona cardinals','cardinals','ari'],
+    ['atlanta falcons','falcons','atl'],
+    ['baltimore ravens','ravens','bal'],
+    ['buffalo bills','bills','buf'],
+    ['carolina panthers','panthers','car'],
+    ['chicago bears','bears','chi'],
+    ['cincinnati bengals','bengals','cin'],
+    ['cleveland browns','browns','cle'],
+    ['dallas cowboys','cowboys','dal'],
+    ['denver broncos','broncos','den'],
+    ['detroit lions','lions','det'],
+    ['green bay packers','packers','gb','gnb'],
+    ['houston texans','texans','hou'],
+    ['indianapolis colts','colts','ind'],
+    ['jacksonville jaguars','jaguars','jax'],
+    ['kansas city chiefs','chiefs','kc','kan'],
+    ['las vegas raiders','raiders','lv','oak'],
+    ['los angeles chargers','chargers','lac','la chargers'],
+    ['los angeles rams','rams','lar','la rams'],
+    ['miami dolphins','dolphins','mia'],
+    ['minnesota vikings','vikings','min'],
+    ['new england patriots','patriots','ne','nwe'],
+    ['new orleans saints','saints','no','nor'],
+    ['new york giants','giants','nyg'],
+    ['new york jets','jets','nyj'],
+    ['philadelphia eagles','eagles','phi'],
+    ['pittsburgh steelers','steelers','pit'],
+    ['san francisco 49ers','49ers','sf','sfo'],
+    ['seattle seahawks','seahawks','sea'],
+    ['tampa bay buccaneers','buccaneers','tb','tam'],
+    ['tennessee titans','titans','ten'],
+    ['washington commanders','commanders','was','wsh','washington football team','washington redskins'],
+    // NBA
+    ['atlanta hawks','hawks','atl'],
+    ['boston celtics','celtics','bos'],
+    ['brooklyn nets','nets','bkn','brk'],
+    ['charlotte hornets','hornets','cha'],
+    ['chicago bulls','bulls','chi'],
+    ['cleveland cavaliers','cavaliers','cavs','cle'],
+    ['dallas mavericks','mavericks','mavs','dal'],
+    ['denver nuggets','nuggets','den'],
+    ['detroit pistons','pistons','det'],
+    ['golden state warriors','warriors','gs','gsw'],
+    ['houston rockets','rockets','hou'],
+    ['indiana pacers','pacers','ind'],
+    ['los angeles clippers','clippers','lac','la clippers'],
+    ['los angeles lakers','lakers','lal','la lakers'],
+    ['memphis grizzlies','grizzlies','mem'],
+    ['miami heat','heat','mia'],
+    ['milwaukee bucks','bucks','mil'],
+    ['minnesota timberwolves','timberwolves','wolves','min'],
+    ['new orleans pelicans','pelicans','no','nor'],
+    ['new york knicks','knicks','nyk','ny knicks'],
+    ['oklahoma city thunder','thunder','okc'],
+    ['orlando magic','magic','orl'],
+    ['philadelphia 76ers','76ers','sixers','phi'],
+    ['phoenix suns','suns','phx','pho'],
+    ['portland trail blazers','trail blazers','blazers','por'],
+    ['sacramento kings','kings','sac'],
+    ['san antonio spurs','spurs','sas'],
+    ['toronto raptors','raptors','tor'],
+    ['utah jazz','jazz','uta'],
+    ['washington wizards','wizards','was','wsh'],
+    // MLB
+    ['arizona diamondbacks','diamondbacks','d-backs','ari'],
+    ['atlanta braves','braves','atl'],
+    ['baltimore orioles','orioles','bal'],
+    ['boston red sox','red sox','bos'],
+    ['chicago cubs','cubs','chc'],
+    ['chicago white sox','white sox','cws','chw'],
+    ['cincinnati reds','reds','cin'],
+    ['cleveland guardians','guardians','cle','cleveland indians'],
+    ['colorado rockies','rockies','col'],
+    ['detroit tigers','tigers','det'],
+    ['houston astros','astros','hou'],
+    ['kansas city royals','royals','kc','kca'],
+    ['los angeles angels','angels','laa','la angels','anaheim angels'],
+    ['los angeles dodgers','dodgers','lad','la dodgers'],
+    ['miami marlins','marlins','mia'],
+    ['milwaukee brewers','brewers','mil'],
+    ['minnesota twins','twins','min'],
+    ['new york mets','mets','nym','ny mets'],
+    ['new york yankees','yankees','nyy','ny yankees'],
+    ['oakland athletics','athletics','oak','a\'s'],
+    ['philadelphia phillies','phillies','phi'],
+    ['pittsburgh pirates','pirates','pit'],
+    ['san diego padres','padres','sd','sdp'],
+    ['san francisco giants','giants','sf','sfg'],
+    ['seattle mariners','mariners','sea'],
+    ['st. louis cardinals','st louis cardinals','cardinals','stl'],
+    ['tampa bay rays','rays','tb','tbr'],
+    ['texas rangers','rangers','tex'],
+    ['toronto blue jays','blue jays','tor'],
+    ['washington nationals','nationals','was','wsh'],
+    // NHL
+    ['anaheim ducks','ducks','ana'],
+    ['arizona coyotes','coyotes','ari','utah hockey club','utah','utah hc'],
+    ['boston bruins','bruins','bos'],
+    ['buffalo sabres','sabres','buf'],
+    ['calgary flames','flames','cgy'],
+    ['carolina hurricanes','hurricanes','car'],
+    ['chicago blackhawks','blackhawks','chi'],
+    ['colorado avalanche','avalanche','col'],
+    ['columbus blue jackets','blue jackets','cbj'],
+    ['dallas stars','stars','dal'],
+    ['detroit red wings','red wings','det'],
+    ['edmonton oilers','oilers','edm'],
+    ['florida panthers','panthers','fla'],
+    ['los angeles kings','kings','lak','la kings'],
+    ['minnesota wild','wild','min'],
+    ['montreal canadiens','canadiens','mtl'],
+    ['nashville predators','predators','nsh'],
+    ['new jersey devils','devils','njd'],
+    ['new york islanders','islanders','nyi'],
+    ['new york rangers','rangers','nyr'],
+    ['ottawa senators','senators','ott'],
+    ['philadelphia flyers','flyers','phi'],
+    ['pittsburgh penguins','penguins','pit'],
+    ['san jose sharks','sharks','sjs'],
+    ['seattle kraken','kraken','sea'],
+    ['st. louis blues','st louis blues','blues','stl'],
+    ['tampa bay lightning','lightning','tbl'],
+    ['toronto maple leafs','maple leafs','tor'],
+    ['vancouver canucks','canucks','van'],
+    ['vegas golden knights','golden knights','vgk','vegas'],
+    ['washington capitals','capitals','was','wsh'],
+    ['winnipeg jets','jets','wpg']
+  ];
+  // Build lookup: each variant → group index
+  var map = {};
+  raw.forEach(function(group, idx) {
+    group.forEach(function(name) {
+      map[name.toLowerCase().trim()] = idx;
+    });
+  });
+  return map;
+})();
+
+function normalizeTeam(name) {
+  if (!name) return '';
+  return name.toLowerCase().trim()
+    .replace(/\./g, '')         // st. louis → st louis
+    .replace(/\s+/g, ' ');
+}
+
 function teamsMatch(a, b) {
   if (!a || !b) return false;
-  a = a.toLowerCase().trim();
-  b = b.toLowerCase().trim();
-  if (a === b) return true;
-  // Try last word match (city names differ sometimes)
-  var aLast = a.split(' ').pop();
-  var bLast = b.split(' ').pop();
-  if (aLast === bLast && aLast.length > 3) return true;
-  // Try contains
-  if (a.indexOf(bLast) !== -1 || b.indexOf(aLast) !== -1) return true;
+  var na = normalizeTeam(a);
+  var nb = normalizeTeam(b);
+  if (na === nb) return true;
+
+  // Alias map lookup — same group = same team
+  var ga = TEAM_ALIASES[na];
+  var gb = TEAM_ALIASES[nb];
+  if (ga !== undefined && gb !== undefined && ga === gb) return true;
+
+  // Fallback: nickname match (last word, length > 3)
+  var aLast = na.split(' ').pop();
+  var bLast = nb.split(' ').pop();
+  if (aLast.length > 3 && aLast === bLast) return true;
+
+  // Fallback: one contains the other's last word
+  if (aLast.length > 3 && nb.indexOf(aLast) !== -1) return true;
+  if (bLast.length > 3 && na.indexOf(bLast) !== -1) return true;
+
   return false;
 }
 function addLog(msg, cls) {
@@ -375,6 +549,113 @@ function addLog(msg, cls) {
   el.innerHTML = '<span class="nt">' + nowStr() + '</span><span class="nm">' + msg + '</span>';
   log.insertBefore(el, log.firstChild);
   while (log.children.length > 60) log.removeChild(log.lastChild);
+}
+
+// ─── +EV MATH ────────────────────────────────────────────────────────────────
+// Convert American odds to implied probability
+function americanToImplied(odds) {
+  if (odds === null || odds === undefined || isNaN(odds)) return null;
+  if (odds > 0) return 100 / (odds + 100);
+  return Math.abs(odds) / (Math.abs(odds) + 100);
+}
+
+// Convert American odds to decimal
+function americanToDecimal(odds) {
+  if (odds === null || odds === undefined || isNaN(odds)) return null;
+  if (odds > 0) return (odds / 100) + 1;
+  return (100 / Math.abs(odds)) + 1;
+}
+
+// Strip vig from two-sided market, return true probabilities
+function noVigProbs(oddsA, oddsB) {
+  var pA = americanToImplied(oddsA);
+  var pB = americanToImplied(oddsB);
+  if (pA === null || pB === null) return null;
+  var total = pA + pB;
+  return { probA: pA / total, probB: pB / total, vig: total - 1 };
+}
+
+// Calculate EV% for a bet: (noVigProb * decimalOdds) - 1
+function calcEV(noVigProb, decimalOdds) {
+  if (noVigProb === null || decimalOdds === null) return null;
+  return (noVigProb * decimalOdds) - 1;
+}
+
+// Get moneyline odds for a team from a specific bookmaker
+function getMLOdds(game, bookKey, teamName) {
+  for (var j = 0; j < game.bookmakers.length; j++) {
+    if (game.bookmakers[j].key !== bookKey) continue;
+    var bm = game.bookmakers[j];
+    for (var k = 0; k < bm.markets.length; k++) {
+      if (bm.markets[k].key !== 'h2h') continue;
+      var mkt = bm.markets[k];
+      for (var l = 0; l < mkt.outcomes.length; l++) {
+        if (mkt.outcomes[l].name === teamName) return mkt.outcomes[l].price;
+      }
+    }
+  }
+  return null;
+}
+
+// Main +EV analysis: compare soft books vs Pinnacle no-vig
+function analyzeEV(game) {
+  var result = { hasEV: false, evBets: [], pinnacleVig: null };
+
+  // Get Pinnacle h2h odds
+  var pinHomeML = getMLOdds(game, 'pinnacle', game.home_team);
+  var pinAwayML = getMLOdds(game, 'pinnacle', game.away_team);
+
+  if (pinHomeML === null || pinAwayML === null) return result;
+
+  var nv = noVigProbs(pinHomeML, pinAwayML);
+  if (!nv) return result;
+
+  result.pinnacleVig = (nv.vig * 100).toFixed(1) + '%';
+
+  var softBooks = ['draftkings','fanduel','betmgm','caesars','pointsbet','williamhill_us','barstool','unibet_us','bovada','mybookie'];
+
+  softBooks.forEach(function(bookKey) {
+    var homeML = getMLOdds(game, bookKey, game.home_team);
+    var awayML = getMLOdds(game, bookKey, game.away_team);
+
+    if (homeML !== null) {
+      var dec = americanToDecimal(homeML);
+      var ev  = calcEV(nv.probA, dec);
+      if (ev !== null && ev > 0) {
+        result.hasEV = true;
+        result.evBets.push({
+          book: bookKey, team: game.home_team,
+          odds: homeML, ev: ev,
+          evPct: (ev * 100).toFixed(1)
+        });
+      }
+    }
+    if (awayML !== null) {
+      var dec2 = americanToDecimal(awayML);
+      var ev2  = calcEV(nv.probB, dec2);
+      if (ev2 !== null && ev2 > 0) {
+        result.hasEV = true;
+        result.evBets.push({
+          book: bookKey, team: game.away_team,
+          odds: awayML, ev: ev2,
+          evPct: (ev2 * 100).toFixed(1)
+        });
+      }
+    }
+  });
+
+  // Sort by EV descending
+  result.evBets.sort(function(a,b){ return b.ev - a.ev; });
+  return result;
+}
+
+function fmtBookName(key) {
+  var m = {draftkings:'DraftKings',fanduel:'FanDuel',betmgm:'BetMGM',caesars:'Caesars',pointsbet:'PointsBet',williamhill_us:'WH',barstool:'Barstool',unibet_us:'Unibet',bovada:'Bovada',mybookie:'MyBookie'};
+  return m[key] || key;
+}
+
+function fmtOdds(o) {
+  return o > 0 ? '+' + o : '' + o;
 }
 
 // ─── API ─────────────────────────────────────────────────────────────────────
@@ -417,13 +698,15 @@ async function fetchEventsForSport(apiKey, sport, date) {
   return Array.isArray(events) ? events : [];
 }
 
+// Fetch both spreads AND h2h (moneylines) in a single call for EV calculation
 async function fetchOddsForEvents(apiKey, sport, events) {
   var chunkSize = 10;
   var oddsMap = {};
   for (var i = 0; i < events.length; i += chunkSize) {
     var chunk = events.slice(i, i + chunkSize);
     var ids = chunk.map(function(e) { return e.id; }).join(',');
-    var url = 'https://api.the-odds-api.com/v4/sports/' + sport + '/odds/?apiKey=' + apiKey + '&regions=us,eu&markets=spreads&oddsFormat=american&eventIds=' + ids;
+    // Fetch spreads AND h2h together — same credit cost as before
+    var url = 'https://api.the-odds-api.com/v4/sports/' + sport + '/odds/?apiKey=' + apiKey + '&regions=us,eu&markets=spreads,h2h&oddsFormat=american&eventIds=' + ids;
     try {
       var data = await fetchWithRetry(url);
       data.forEach(function(g) { oddsMap[g.id] = g; });
@@ -488,10 +771,15 @@ function avgBookSpread(game, bookKeys, teamName) {
 function analyzeRLM(game, sport) {
   if (!game.bookmakers || !game.bookmakers.length) return null;
 
+  // Get Pinnacle spread for BOTH teams independently
   var sharpHome = getBookSpread(game, SHARP_BOOKS, game.home_team);
+  var sharpAway = getBookSpread(game, SHARP_BOOKS, game.away_team);
+
+  // Get average soft book spread for BOTH teams independently
   var softHome  = avgBookSpread(game, SOFT_BOOKS, game.home_team);
   var softAway  = avgBookSpread(game, SOFT_BOOKS, game.away_team);
 
+  // Fallback: collect all home spreads across all books
   var allSpreads = [];
   game.bookmakers.forEach(function(bm) {
     bm.markets.forEach(function(mkt) {
@@ -508,53 +796,94 @@ function analyzeRLM(game, sport) {
   if (curHome === null) return null;
 
   var hasSharp = sharpHome !== null;
-  var hasSoft  = softHome !== null;
-  var sharp = null, s1 = false, s2 = false, lineDesc = '', pubDesc = '';
-  var diff = 0, openLine = curHome;
+  var hasSoft  = softHome !== null || softAway !== null;
 
-  if (hasSharp && hasSoft) {
-    diff = roundHalf(sharpHome - softHome);
-    openLine = softHome;
-    if (Math.abs(diff) >= 0.5) {
-      s1 = true;
-      sharp = diff > 0 ? game.away_team : game.home_team;
-      lineDesc = 'Pinnacle ' + fmtSpread(sharpHome) + ' vs soft books ' + fmtSpread(softHome) + ' \u2014 ' + Math.abs(diff).toFixed(1) + ' pt gap';
-    }
-  } else if (!hasSharp && hasSoft && allSpreads.length >= 2) {
-    var minLine = Math.min.apply(null, allSpreads);
-    var maxLine = Math.max.apply(null, allSpreads);
-    diff = roundHalf(maxLine - minLine);
-    openLine = softHome;
-    if (diff >= 0.5) {
-      s1 = true;
-      sharp = maxLine > softHome ? game.away_team : game.home_team;
-      lineDesc = 'Cross-book spread ' + fmtSpread(minLine) + '\u2013' + fmtSpread(maxLine) + ' (' + diff.toFixed(1) + ' pt variance, no Pinnacle)';
-    }
+  // ── Analyze from HOME team perspective ──
+  var homeDiff = 0, homeS1 = false;
+  if (hasSharp && softHome !== null) {
+    homeDiff = roundHalf(sharpHome - softHome);
+    // Threshold: 1pt = moderate, 1.5pt+ = strong candidate
+    if (Math.abs(homeDiff) >= 1.0) homeS1 = true;
+  } else if (!hasSharp && allSpreads.length >= 2) {
+    var minH = Math.min.apply(null, allSpreads);
+    var maxH = Math.max.apply(null, allSpreads);
+    homeDiff = roundHalf(maxH - minH);
+    if (Math.abs(homeDiff) >= 1.0) homeS1 = true;
   }
+
+  // ── Analyze from AWAY team perspective ──
+  var awayDiff = 0, awayS1 = false;
+  if (sharpAway !== null && softAway !== null) {
+    awayDiff = roundHalf(sharpAway - softAway);
+    if (Math.abs(awayDiff) >= 1.0) awayS1 = true;
+  }
+
+  // Use whichever perspective shows larger divergence
+  var useAway = awayS1 && (!homeS1 || Math.abs(awayDiff) > Math.abs(homeDiff));
+  var diff     = useAway ? awayDiff : homeDiff;
+  var s1       = homeS1 || awayS1;
+
+  // Recalculate display spreads based on best perspective
+  var displaySharpHome = sharpHome;
+  var displaySoftHome  = softHome;
+
+  // ── Determine sharp side ──
+  var sharp = null, s2 = false, lineDesc = '', pubDesc = '';
 
   if (s1 && hasSharp && hasSoft) {
-    var softFavorsHome = softHome < 0;
-    var sharpDisagrees = diff > 0;
-    if (softFavorsHome && sharpDisagrees) {
-      s2 = true; sharp = game.away_team;
-      pubDesc = 'Public on ' + game.home_team + ' (soft ' + fmtSpread(softHome) + ') \u2014 Pinnacle ' + fmtSpread(sharpHome) + ' signals sharp on ' + game.away_team;
-    } else if (!softFavorsHome && !sharpDisagrees) {
-      s2 = true; sharp = game.home_team;
-      pubDesc = 'Public on ' + game.away_team + ' (soft ' + fmtSpread(softHome) + ') \u2014 Pinnacle ' + fmtSpread(sharpHome) + ' signals sharp on ' + game.home_team;
-    } else {
-      pubDesc = 'Pinnacle ' + fmtSpread(sharpHome) + ' \u00b7 Soft books ' + fmtSpread(softHome);
+    // Sharp side: Pinnacle moved opposite to soft book consensus
+    // If Pinnacle home spread is HIGHER than soft (less favorite / more dog),
+    // sharp money is on the AWAY team (fading the public home favorite)
+    if (homeDiff > 0.5) {
+      // Pinnacle has home as bigger dog than soft → sharp on away
+      sharp = game.away_team;
+      s2 = softHome !== null && softHome < 0; // public on home favorite
+      lineDesc = 'Pinnacle ' + fmtSpread(sharpHome) + ' vs soft ' + fmtSpread(softHome) + ' \u2014 ' + Math.abs(diff).toFixed(1) + 'pt gap (sharp on away)';
+      pubDesc = s2 ? 'Public on ' + game.home_team + ' \u2014 Pinnacle signals sharp on ' + game.away_team : 'Pinnacle ' + fmtSpread(sharpHome) + ' diverges from soft ' + fmtSpread(softHome);
+    } else if (homeDiff < -0.5) {
+      // Pinnacle has home as bigger favorite than soft → sharp on home
+      sharp = game.home_team;
+      s2 = softAway !== null && softAway < 0; // public on away favorite
+      lineDesc = 'Pinnacle ' + fmtSpread(sharpHome) + ' vs soft ' + fmtSpread(softHome) + ' \u2014 ' + Math.abs(diff).toFixed(1) + 'pt gap (sharp on home)';
+      pubDesc = s2 ? 'Public on ' + game.away_team + ' \u2014 Pinnacle signals sharp on ' + game.home_team : 'Pinnacle ' + fmtSpread(sharpHome) + ' diverges from soft ' + fmtSpread(softHome);
+    } else if (awayS1 && awayDiff > 0.5) {
+      sharp = game.home_team;
+      s2 = true;
+      lineDesc = 'Away spread: Pinnacle ' + fmtSpread(sharpAway) + ' vs soft ' + fmtSpread(softAway) + ' \u2014 ' + Math.abs(awayDiff).toFixed(1) + 'pt gap';
+      pubDesc = 'Pinnacle signals sharp on ' + game.home_team;
+    } else if (awayS1 && awayDiff < -0.5) {
+      sharp = game.away_team;
+      s2 = true;
+      lineDesc = 'Away spread: Pinnacle ' + fmtSpread(sharpAway) + ' vs soft ' + fmtSpread(softAway) + ' \u2014 ' + Math.abs(awayDiff).toFixed(1) + 'pt gap';
+      pubDesc = 'Pinnacle signals sharp on ' + game.away_team;
     }
-  } else if (!s1) {
-    pubDesc = hasSharp ? 'Pinnacle ' + fmtSpread(sharpHome) + ' aligns with soft books \u2014 no divergence' : 'No Pinnacle data available';
+  } else if (s1 && !hasSharp) {
+    // Cross-book divergence only
+    var minLine = Math.min.apply(null, allSpreads);
+    var maxLine = Math.max.apply(null, allSpreads);
+    sharp = maxLine > (softHome || 0) ? game.away_team : game.home_team;
+    lineDesc = 'Cross-book spread ' + fmtSpread(minLine) + '\u2013' + fmtSpread(maxLine) + ' (' + Math.abs(diff).toFixed(1) + 'pt variance, no Pinnacle)';
+    pubDesc = 'No Pinnacle data \u2014 cross-book divergence only';
+  } else {
+    pubDesc = hasSharp ? 'Pinnacle ' + fmtSpread(sharpHome) + ' aligns with soft books \u2014 no significant divergence' : 'No Pinnacle data available';
   }
 
-  var strength = (s1 && s2) ? 'strong' : s1 ? 'moderate' : 'watch';
+  // Strength: need both line divergence (s1) AND public/sharp split confirmation (s2) for strong
+  // 1.5pt+ gap alone qualifies as strong if Pinnacle is present
+  var bigGap = Math.abs(diff) >= 1.5 && hasSharp;
+  var strength = (s1 && s2) || bigGap ? 'strong' : s1 ? 'moderate' : 'watch';
+
+  // +EV analysis
+  var evData = analyzeEV(game);
+
   return {
     homeTeam:game.home_team, awayTeam:game.away_team, commenceTime:game.commence_time,
-    curHome:curHome, curAway:curAway, openLine:openLine,
-    sharpHome:sharpHome, softHome:softHome, diff:diff,
-    hasSharp:hasSharp, hasSoft:hasSoft,
-    sharp:sharp, s1:s1, s2:s2, strength:strength, lineDesc:lineDesc, pubDesc:pubDesc, sport:sport
+    curHome:curHome, curAway:curAway,
+    sharpHome:sharpHome, softHome:softHome,
+    sharpAway:sharpAway, softAway:softAway,
+    diff:diff, hasSharp:hasSharp, hasSoft:hasSoft,
+    sharp:sharp, s1:s1, s2:s2, strength:strength, lineDesc:lineDesc, pubDesc:pubDesc, sport:sport,
+    evData:evData
   };
 }
 
@@ -563,6 +892,9 @@ function renderCard(g, idx, isNew) {
   var isSH = g.sharp === g.homeTeam, isSA = g.sharp === g.awayTeam;
   var badge = g.strength === 'strong' ? '&#x1F525; Strong RLM' : g.strength === 'moderate' ? '&#x26A1; Moderate RLM' : '&mdash; No RLM';
   var newBadge = isNew ? '<span class="new-badge">NEW</span>' : '';
+  var hasEV = g.evData && g.evData.hasEV;
+  var evBadge = hasEV ? '<span class="ev-badge">+EV</span>' : '';
+
   var signal = g.strength !== 'watch' ? (
     '<div class="signal-row">' +
     '<span style="font-size:14px">' + (g.s1 && g.s2 ? '&#x1F3AF;' : '&#x1F4E1;') + '</span>' +
@@ -575,6 +907,29 @@ function renderCard(g, idx, isNew) {
     '</div>'
   ) : '';
 
+  // +EV detail row
+  var evRow = '';
+  if (hasEV && g.evData.evBets.length > 0) {
+    var chips = g.evData.evBets.slice(0, 5).map(function(bet) {
+      return '<span class="ev-book-chip">' +
+        fmtBookName(bet.book) +
+        '<span>|</span>' +
+        bet.team.split(' ').pop() +
+        '<span>|</span>' +
+        fmtOdds(bet.odds) +
+        '<span>|</span>' +
+        '<strong style="color:var(--ev)">+' + bet.evPct + '%</strong>' +
+        '</span>';
+    }).join('');
+    evRow = '<div class="ev-row"><span class="ev-row-label">+EV Bets</span>' + chips + '</div>';
+  }
+
+  // Best EV metric box
+  var bestEV = hasEV && g.evData.evBets.length > 0 ? g.evData.evBets[0] : null;
+  var evMetric = bestEV ?
+    '<div class="metric-box ev-box"><div class="metric-label">Best +EV</div><div class="metric-value mv-ev">+' + bestEV.evPct + '%</div><div style="font-family:var(--mono);font-size:9px;color:var(--ev);opacity:.7;margin-top:2px;">' + fmtBookName(bestEV.book) + ' ' + bestEV.team.split(' ').pop() + '</div></div>' :
+    '<div class="metric-box"><div class="metric-label">EV</div><div class="metric-value" style="color:var(--muted);font-size:14px;">No ML data</div></div>';
+
   var spreadColorAway = isSA ? 'var(--accent)' : 'var(--text)';
   var spreadColorHome = isSH ? 'var(--accent)' : 'var(--text)';
   var diffClass = g.diff > 0 ? 'mv-neg' : g.diff < 0 ? 'mv-pos' : '';
@@ -583,10 +938,13 @@ function renderCard(g, idx, isNew) {
   var sharpColor = g.sharp ? 'var(--accent)' : 'var(--muted)';
   var pinnacleColor = g.hasSharp ? 'var(--accent2)' : 'var(--muted)';
 
-  return '<div class="game-card rlm-' + g.strength + (isNew ? ' newly-flagged' : '') + '" style="animation-delay:' + (idx * 0.04) + 's">' +
+  var cardClass = 'game-card rlm-' + g.strength + (hasEV ? ' has-ev' : '') + (isNew ? ' newly-flagged' : '');
+
+  return '<div class="' + cardClass + '" style="animation-delay:' + (idx * 0.04) + 's">' +
     '<div class="card-header">' +
     '<span class="sport-badge">' + sportLabel(g.sport) + '</span>' +
     newBadge +
+    evBadge +
     '<span class="game-time">' + fmtTime(g.commenceTime) + '</span>' +
     '<span class="rlm-badge ' + g.strength + '">' + badge + '</span>' +
     '</div>' +
@@ -601,9 +959,11 @@ function renderCard(g, idx, isNew) {
     '<div class="metric-box"><div class="metric-label">Soft Books</div><div class="metric-value">' + (g.hasSoft ? fmtSpread(g.softHome) : 'N/A') + '</div></div>' +
     '<div class="metric-box"><div class="metric-label">Gap</div><div class="metric-value ' + diffClass + '">' + diffVal + '</div></div>' +
     '<div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:' + sharpColor + '">' + sharpVal + '</div></div>' +
+    evMetric +
     '</div>' +
     '</div>' +
     signal +
+    evRow +
     '</div>';
 }
 
@@ -646,7 +1006,7 @@ async function sendPushover(title, msg, priority) {
 async function testPushover() {
   var chip = document.getElementById('poChip');
   chip.textContent = 'Sending...'; chip.className = 'po-chip off';
-  var r = await sendPushover('RLM Detector', 'Pushover connected! Alerts will fire when RLMs are detected.', 0);
+  var r = await sendPushover('RLM Detector', 'Pushover connected! Alerts will fire when RLMs and +EV spots are detected.', 0);
   chip.textContent = r.ok ? 'Connected' : 'Failed';
   chip.className = r.ok ? 'po-chip ok' : 'po-chip off';
   addLog(r.ok ? 'Pushover test ping sent.' : 'Pushover test failed: ' + r.reason, r.ok ? 'sent' : 'fail');
@@ -687,7 +1047,7 @@ async function fetchESPNGames(sportKey, dateStr) {
   });
 }
 
-// ─── STEP 1: LOAD GAMES (ESPN — free, no key, no limits) ──────────────────────────────────
+// ─── STEP 1: LOAD GAMES ──────────────────────────────────────────────────────
 async function loadGames() {
   var date   = document.getElementById('scanDate').value;
   var sports = [];
@@ -746,6 +1106,7 @@ async function loadGames() {
   setStatus(allEvents.length + ' games loaded via ESPN — ' + breakdown + '. Select games to watch.', '');
   addLog('ESPN loaded ' + allEvents.length + ' games.' + (loadErrors.length ? ' Errors: ' + loadErrors.join(', ') : ''));
 }
+
 // ─── STEP 3: SCAN ────────────────────────────────────────────────────────────
 async function runScan(isAuto) {
   if (isAuto === undefined) isAuto = false;
@@ -759,7 +1120,6 @@ async function runScan(isAuto) {
   setStatus((isAuto ? '[Auto] ' : '') + 'Scanning ' + watchlist.size + ' selected game(s)...', 'loading');
   if (!isAuto) { document.getElementById('results').innerHTML = ''; document.getElementById('summaryBar').style.display = 'none'; }
 
-  // Get watchlist events from allFetchedGames
   var watchlistEvents = allFetchedGames.filter(function(ev) {
     return watchlist.has(ev.home_team + '||' + ev.away_team + '||' + ev.commence_time);
   });
@@ -769,7 +1129,6 @@ async function runScan(isAuto) {
     return;
   }
 
-  // Group selected games by sport
   var bySport = {};
   watchlistEvents.forEach(function(ev) {
     if (!bySport[ev.sportKey]) bySport[ev.sportKey] = [];
@@ -784,8 +1143,6 @@ async function runScan(isAuto) {
     var sport = sportKeys[si];
     try {
       setStatus((isAuto ? '[Auto] ' : '') + 'Fetching odds — ' + sportLabel(sport) + '...', 'loading');
-
-      // Get Odds API event list for this sport (0 credits) then match by team name
       var oddsEvents = await fetchEventsForSport(apiKey, sport, document.getElementById('scanDate').value);
 
       var matchedOddsEvents = [];
@@ -798,50 +1155,85 @@ async function runScan(isAuto) {
         }
       });
 
+      // Diagnostic: log ESPN games that couldn't match to Odds API
+      bySport[sport].forEach(function(espnGame) {
+        var matched = matchedOddsEvents.find(function(m) { return m.espnGame.espn_id === espnGame.espn_id; });
+        if (!matched) {
+          addLog('NO MATCH \u2014 ' + espnGame.away_team + ' @ ' + espnGame.home_team + ' [' + sportLabel(sport) + '] not in Odds API', 'fail');
+        }
+      });
+
       if (matchedOddsEvents.length) {
         var oddsEventsToFetch = matchedOddsEvents.map(function(m){return m.oddsEvent;});
         var oddsMap = await fetchOddsForEvents(apiKey, sport, oddsEventsToFetch);
         matchedOddsEvents.forEach(function(m) {
           if (oddsMap[m.oddsEvent.id]) {
             allOddsMap[m.espnGame.espn_id] = oddsMap[m.oddsEvent.id];
+          } else {
+            addLog('NO ODDS \u2014 ' + m.espnGame.away_team + ' @ ' + m.espnGame.home_team + ' matched but no odds returned', 'fail');
           }
         });
       }
     } catch(e) { errs.push(sportLabel(sport) + ': ' + e.message); }
   }
+
   var withOdds = watchlistEvents.filter(function(ev) { return allOddsMap[ev.espn_id]; });
   var noOdds   = watchlistEvents.filter(function(ev) { return !allOddsMap[ev.espn_id]; });
 
   var analyzed = withOdds.map(function(ev) { return analyzeRLM(allOddsMap[ev.espn_id], ev.sportKey); }).filter(Boolean);
   analyzed.sort(function(a,b) {
-    var o = {strong:0,moderate:1,watch:2};
-    return o[a.strength] - o[b.strength];
+    // Sort: strong RLM+EV first, then strong, then moderate+EV, then moderate, then EV only, then watch
+    function score(g) {
+      var hasEV = g.evData && g.evData.hasEV;
+      if (g.strength === 'strong'   && hasEV)  return 0;
+      if (g.strength === 'strong')              return 1;
+      if (g.strength === 'moderate' && hasEV)  return 2;
+      if (g.strength === 'moderate')            return 3;
+      if (hasEV)                                return 4;
+      return 5;
+    }
+    return score(a) - score(b);
   });
 
   // Find new RLMs
   var newOnes = [];
   analyzed.forEach(function(g) {
     var id = gameId(g);
-    if (g.strength !== 'watch' && alertLevels.indexOf(g.strength) !== -1 && !previousRLMs.has(id)) {
-      newOnes.push(g); previousRLMs.add(id);
+    var hasEV = g.evData && g.evData.hasEV;
+    var isNewRLM = g.strength !== 'watch' && alertLevels.indexOf(g.strength) !== -1 && !previousRLMs.has(id);
+    var isNewEV  = hasEV && alertLevels.indexOf('ev') !== -1 && !previousEVs.has(id);
+    if (isNewRLM || isNewEV) {
+      newOnes.push(g);
+      if (isNewRLM) previousRLMs.add(id);
+      if (isNewEV)  previousEVs.add(id);
     }
   });
 
   // Send Pushover
   for (var ni = 0; ni < newOnes.length; ni++) {
     var g = newOnes[ni];
+    var hasEV = g.evData && g.evData.hasEV;
     var priority = g.strength === 'strong' ? 1 : 0;
-    var title = g.strength === 'strong' ? 'Strong RLM Detected' : 'Moderate RLM Detected';
+    var title = g.strength === 'strong' ? '🔥 Strong RLM' : g.strength === 'moderate' ? '⚡ Moderate RLM' : '💰 +EV Spot';
+    if (hasEV && g.strength !== 'watch') title += ' + 💰 +EV';
     var sharpName = g.sharp ? g.sharp.split(' ').pop() : '?';
-    var msg = g.awayTeam + ' @ ' + g.homeTeam + '\nSharp side: ' + sharpName + ' | Spread: ' + fmtSpread(g.curHome) + '\n' + (g.lineDesc || g.pubDesc);
+    var msg = g.awayTeam + ' @ ' + g.homeTeam + '\n';
+    if (g.strength !== 'watch') msg += 'Sharp side: ' + sharpName + ' | Spread: ' + fmtSpread(g.curHome) + '\n' + (g.lineDesc || g.pubDesc);
+    if (hasEV && g.evData.evBets.length > 0) {
+      var top = g.evData.evBets[0];
+      msg += '\n+EV: ' + fmtBookName(top.book) + ' ' + top.team.split(' ').pop() + ' ' + fmtOdds(top.odds) + ' (+' + top.evPct + '% EV)';
+    }
     var pr = await sendPushover(title, msg, priority);
-    addLog((pr.ok ? 'Sent' : 'Failed') + ' \u2014 ' + g.awayTeam + ' @ ' + g.homeTeam + ' (' + g.strength + ')' + (!pr.ok ? ': ' + pr.reason : ''), pr.ok ? 'sent' : 'fail');
+    addLog((pr.ok ? 'Sent' : 'Failed') + ' \u2014 ' + g.awayTeam + ' @ ' + g.homeTeam + ' (' + g.strength + (hasEV ? ' +EV' : '') + ')' + (!pr.ok ? ': ' + pr.reason : ''), pr.ok ? 'sent' : 'fail');
   }
 
   var strong   = analyzed.filter(function(g){return g.strength==='strong';}).length;
   var moderate = analyzed.filter(function(g){return g.strength==='moderate';}).length;
+  var evCount  = analyzed.filter(function(g){return g.evData && g.evData.hasEV;}).length;
+
   document.getElementById('sumStrong').textContent   = strong;
   document.getElementById('sumModerate').textContent = moderate;
+  document.getElementById('sumEV').textContent       = evCount;
   document.getElementById('sumTotal').textContent    = watchlistEvents.length;
   document.getElementById('summaryBar').style.display = 'flex';
   document.getElementById('lastScanInfo').innerHTML = 'Last scan: ' + nowStr() + '<br>' + withOdds.length + ' evaluated &middot; ' + noOdds.length + ' no odds';
@@ -854,7 +1246,7 @@ async function runScan(isAuto) {
   var prefix = isAuto ? '[Auto] ' : '';
   var newNote = newOnes.length ? ' \u00b7 ' + newOnes.length + ' alert(s) sent' : '';
   var errNote = errs.length ? ' \u00b7 ' + errs.length + ' error(s)' : '';
-  setStatus(prefix + 'Scan complete \u2014 ' + watchlistEvents.length + ' games \u00b7 ' + strong + ' strong \u00b7 ' + moderate + ' moderate' + newNote + errNote, '');
+  setStatus(prefix + 'Scan complete \u2014 ' + watchlistEvents.length + ' games \u00b7 ' + strong + ' strong \u00b7 ' + moderate + ' moderate \u00b7 ' + evCount + ' +EV' + newNote + errNote, '');
 
   scanCount++;
   document.getElementById('scanCountEl').textContent = scanCount;
@@ -944,6 +1336,7 @@ function updatePickerSub() {
 function saveWatchlist() {
   watchlist = new Set(pickerTemp);
   previousRLMs.clear();
+  previousEVs.clear();
   closePicker();
   var chip  = document.getElementById('watchlistChip');
   var start = document.getElementById('startBtn');
@@ -973,7 +1366,7 @@ function saveWatchlist() {
 }
 
 // ─── PERSISTENCE ─────────────────────────────────────────────────────────────
-var STORAGE_KEY = 'rlmdetector_v3';
+var STORAGE_KEY = 'rlmdetector_v4';
 
 function saveSettings() {
   try {
@@ -1039,7 +1432,6 @@ document.getElementById('pickerModal').addEventListener('click', function(e) {
   if (e.target === document.getElementById('pickerModal')) closePicker();
 });
 
-// Load saved settings on startup
 loadSettings();
 </script>
 
