@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0c0f;--surface:#111318;--surface2:#181c24;--border:#1e2530;--accent:#00e5ff;--accent2:#ff3d5a;--gold:#ffd166;--green:#06d6a0;--text:#e8edf5;--muted:#5a6478;--mono:'IBM Plex Mono',monospace;--display:'Barlow Condensed',sans-serif;}
+:root{--bg:#0a0c0f;--surface:#111318;--surface2:#181c24;--border:#1e2530;--accent:#00e5ff;--accent2:#ff3d5a;--gold:#ffd166;--green:#06d6a0;--ev:#a8ff78;--text:#e8edf5;--muted:#5a6478;--mono:'IBM Plex Mono',monospace;--display:'Barlow Condensed',sans-serif;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--display);min-height:100vh;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
@@ -94,6 +94,13 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);}
 .game-time{font-family:var(--mono);font-size:11px;color:var(--muted);}
 .new-badge{font-family:var(--mono);font-size:9px;color:var(--bg);background:var(--accent2);padding:2px 7px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;}
 .baseline-badge{font-family:var(--mono);font-size:9px;color:var(--bg);background:var(--gold);padding:2px 7px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;}
+.ev-badge{font-family:var(--mono);font-size:9px;color:var(--bg);background:var(--ev);padding:2px 7px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;}
+.game-card.has-ev{box-shadow:0 0 0 1px var(--ev);}
+.ev-row{padding:9px 16px;background:rgba(168,255,120,.05);border-top:1px solid rgba(168,255,120,.15);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ev-row-label{font-family:var(--mono);font-size:9px;color:var(--ev);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;}
+.ev-chip{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:2px;border:1px solid rgba(168,255,120,.35);color:var(--ev);background:rgba(168,255,120,.06);white-space:nowrap;}
+.mv-ev{color:var(--ev);}
+.sum-val.ev{color:var(--ev);}
 .rlm-badge{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:2px;flex-shrink:0;}
 .rlm-badge.strong{background:rgba(255,61,90,.15);color:var(--accent2);border:1px solid var(--accent2);}
 .rlm-badge.moderate{background:rgba(255,209,102,.12);color:var(--gold);border:1px solid var(--gold);}
@@ -174,7 +181,7 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(--border);font-fa
     </div>
     <div class="field-group" style="max-width:160px;">
       <label>RLM Threshold (pts)</label>
-      <input type="number" id="rlmThreshold" value="1.0" min="0.5" max="5" step="0.5" style="text-align:center;">
+      <input type="number" id="rlmThreshold" value="0.5" min="0.5" max="5" step="0.5" style="text-align:center;">
     </div>
   </div>
   <div class="config-row">
@@ -244,8 +251,9 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(--border);font-fa
 </div>
 
 <div class="legend">
-  <div class="legend-item"><div class="dot dot-strong"></div>Strong RLM &mdash; 2+ pt move from your morning baseline</div>
-  <div class="legend-item"><div class="dot dot-moderate"></div>Moderate RLM &mdash; threshold pts move from baseline</div>
+  <div class="legend-item"><div class="dot dot-strong"></div>Strong RLM &mdash; 1pt+ move from morning baseline</div>
+  <div class="legend-item"><div class="dot dot-moderate"></div>Moderate RLM &mdash; 0.5pt move from baseline</div>
+  <div class="legend-item"><div class="dot" style="background:var(--ev);box-shadow:0 0 6px var(--ev);"></div>+EV &mdash; soft book better than Pinnacle no-vig</div>
   <div class="legend-item"><div class="dot dot-watch"></div>Watching &mdash; below threshold</div>
 </div>
 
@@ -256,6 +264,8 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(--border);font-fa
   <div class="sum-item"><div class="sum-val r" id="sumStrong">0</div><div class="sum-lbl">Strong RLMs</div></div>
   <div class="sep"></div>
   <div class="sum-item"><div class="sum-val y" id="sumModerate">0</div><div class="sum-lbl">Moderate RLMs</div></div>
+  <div class="sep"></div>
+  <div class="sum-item"><div class="sum-val ev" id="sumEV">0</div><div class="sum-lbl">+EV Spots</div></div>
   <div class="sep"></div>
   <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Games Watching</div></div>
   <div class="last-scan-info" id="lastScanInfo"></div>
@@ -408,9 +418,9 @@ async function loadGames(){
       setStatus("Loading "+sportLabel(sport)+"...","loading");
       var oddsUrl="https://api.the-odds-api.com/v4/sports/"+sport+"/odds/?apiKey="+apiKey+
                   "&regions=us&markets=spreads,h2h&oddsFormat=american"+
-                  "&commenceTimeFrom="+date+"T12:00:00Z&commenceTimeTo="+nextDayNoon(date)+"T06:00:00Z";
+                  "&commenceTimeFrom="+new Date().toISOString().replace(/\.\d+Z$/,'Z')+"&commenceTimeTo="+nextDayNoon(date)+"T06:00:00Z";
       var oddsData=await oddsApiFetch(oddsUrl);
-      oddsData.forEach(function(g){g.sportKey=sport;allEvents.push(g);});
+      oddsData.forEach(function(g){g.sportKey=sport;if(new Date(g.commence_time)>new Date())allEvents.push(g);});
     }catch(e){errors.push(sportLabel(sport)+": "+e.message);}
     if(si<sports.length-1)await new Promise(function(r){setTimeout(r,1000);});
   }
@@ -490,6 +500,56 @@ function getMLForTeam(game,bookKeys,teamName){
   return null;
 }
 
+// ─── +EV MATH ────────────────────────────────────────────────────────────────
+function americanToImplied(odds){
+  if(odds===null||isNaN(odds))return null;
+  return odds>0?100/(odds+100):Math.abs(odds)/(Math.abs(odds)+100);
+}
+function americanToDecimal(odds){
+  if(odds===null||isNaN(odds))return null;
+  return odds>0?(odds/100)+1:(100/Math.abs(odds))+1;
+}
+function fmtOdds(o){if(o===null||o===undefined)return'N/A';return o>0?'+'+o:''+o;}
+function fmtBookName(key){
+  return{draftkings:'DraftKings',fanduel:'FanDuel',betmgm:'BetMGM',caesars:'Caesars',
+    pointsbet:'PointsBet',williamhill_us:'WH',barstool:'Barstool',unibet_us:'Unibet',
+    bovada:'Bovada',mybookieag:'MyBookie',betonlineag:'BetOnline',lowvig:'LowVig',
+    betrivers:'BetRivers',betus:'BetUS'}[key]||key;
+}
+
+function analyzeEV(game){
+  var result={hasEV:false,evBets:[]};
+  var pinHomeML=getMLForTeam(game,['pinnacle'],game.home_team);
+  var pinAwayML=getMLForTeam(game,['pinnacle'],game.away_team);
+  if(pinHomeML===null||pinAwayML===null)return result;
+
+  var pHome=americanToImplied(pinHomeML);
+  var pAway=americanToImplied(pinAwayML);
+  var total=pHome+pAway;
+  var nvHome=pHome/total; // no-vig true probability
+  var nvAway=pAway/total;
+
+  var softBooks=['draftkings','fanduel','betmgm','caesars','pointsbet','williamhill_us',
+                 'barstool','unibet_us','bovada','mybookieag','betonlineag','lowvig','betrivers','betus'];
+
+  softBooks.forEach(function(bookKey){
+    var homeML=getMLForTeam(game,[bookKey],game.home_team);
+    var awayML=getMLForTeam(game,[bookKey],game.away_team);
+    if(homeML!==null){
+      var ev=(nvHome*americanToDecimal(homeML))-1;
+      if(ev>0)result.evBets.push({book:bookKey,team:game.home_team,odds:homeML,ev:ev,evPct:(ev*100).toFixed(1)});
+    }
+    if(awayML!==null){
+      var ev2=(nvAway*americanToDecimal(awayML))-1;
+      if(ev2>0)result.evBets.push({book:bookKey,team:game.away_team,odds:awayML,ev:ev2,evPct:(ev2*100).toFixed(1)});
+    }
+  });
+
+  result.evBets.sort(function(a,b){return b.ev-a.ev;});
+  result.hasEV=result.evBets.length>0;
+  return result;
+}
+
 // Get current spread from game — prefer Pinnacle, fall back to soft book average
 function getCurrentSpread(game){
   var sharpHome=getSpreadForTeam(game,SHARP_BOOKS,game.home_team);
@@ -530,7 +590,7 @@ function analyzeGame(game,threshold){
       curSpread:current.spread,baseSpread:current.spread,
       diff:0,strength:'watch',sharp:null,
       source:current.source,isPinnacle:current.isPinnacle,
-      isBaseline:true,
+      isBaseline:true,evData:{hasEV:false,evBets:[]},
       reason:'Baseline set at '+fmtSpread(current.spread)+' ('+current.source+')'
     };
   }
@@ -541,7 +601,7 @@ function analyzeGame(game,threshold){
   if(absDiff>=0.5)sharp=diff<0?game.home_team:game.away_team;
 
   var strength='watch';
-  if(absDiff>=2.0)strength='strong';
+  if(absDiff>=1.0)strength='strong';
   else if(absDiff>=threshold)strength='moderate';
 
   // Additional signal: compare Pinnacle vs soft books right now
@@ -555,6 +615,8 @@ function analyzeGame(game,threshold){
     }
   }
 
+  var evData=analyzeEV(game);
+
   var reason=current.source+' · Baseline '+fmtSpread(base.spread)+' \u2192 Current '+fmtSpread(current.spread)+
     (absDiff>=0.5?' ('+(diff>0?'+':'')+diff.toFixed(1)+'pt)':' · No significant move')+pinVsSoftSignal;
 
@@ -565,21 +627,24 @@ function analyzeGame(game,threshold){
     diff:diff,strength:strength,sharp:sharp,
     source:current.source,isPinnacle:current.isPinnacle,
     pinVsSoftGap:pinVsSoftGap,
-    isBaseline:false,reason:reason
+    isBaseline:false,evData:evData,reason:reason
   };
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
 function renderCard(g,idx,isNew){
   var isSH=g.sharp===g.homeTeam,isSA=g.sharp===g.awayTeam;
+  var hasEV=g.evData&&g.evData.hasEV;
   var badge=g.strength==='strong'?'&#x1F525; Strong RLM':g.strength==='moderate'?'&#x26A1; Moderate RLM':'&mdash; No RLM';
   var newBadge=isNew?'<span class="new-badge">NEW</span>':'';
   var blBadge=g.isBaseline?'<span class="baseline-badge">BASELINE</span>':'';
+  var evBadge=hasEV?'<span class="ev-badge">+EV</span>':'';
   var diffClass=g.diff<0?'mv-pos':g.diff>0?'mv-neg':'mv-neu';
   var diffVal=g.diff!==0?(g.diff>0?'+':'')+g.diff.toFixed(1)+'pt':'&#x00B10;0';
   var sharpVal=g.sharp?g.sharp.split(' ').pop().toUpperCase():'&mdash;';
   var sharpColor=g.sharp?'var(--accent)':'var(--muted)';
   var pinColor=g.isPinnacle?'var(--accent2)':'var(--muted)';
+  var cardClass='game-card rlm-'+g.strength+(hasEV?' has-ev':'')+(isNew?' newly-flagged':'');
 
   var signal=(!g.isBaseline&&g.strength!=='watch')?
     '<div class="signal-row"><span style="font-size:14px">&#x1F4C8;</span>'+
@@ -591,9 +656,28 @@ function renderCard(g,idx,isNew){
     '<div class="signal-row"><span style="font-size:13px;color:var(--gold)">&#x1F4CD;</span>'+
     '<div class="signal-text" style="color:var(--gold);">'+g.reason+' &mdash; tracking movement from here.</div></div>':'';
 
-  return '<div class="game-card rlm-'+g.strength+(isNew?' newly-flagged':'')+'" style="animation-delay:'+(idx*0.04)+'s">'+
+  // Best EV metric box
+  var bestEV=hasEV&&g.evData.evBets.length>0?g.evData.evBets[0]:null;
+  var evMetric=bestEV?
+    '<div class="metric-box" style="border-color:var(--ev);background:rgba(168,255,120,.06);">'+
+    '<div class="metric-label" style="color:var(--ev);">Best +EV</div>'+
+    '<div class="metric-value mv-ev">+'+bestEV.evPct+'%</div>'+
+    '<div style="font-family:var(--mono);font-size:9px;color:var(--ev);opacity:.7;margin-top:2px;">'+fmtBookName(bestEV.book)+' '+bestEV.team.split(' ').pop()+'</div>'+
+    '</div>':'';
+
+  // EV detail row showing all +EV bets
+  var evRow='';
+  if(hasEV&&g.evData.evBets.length>0){
+    var chips=g.evData.evBets.slice(0,5).map(function(bet){
+      return '<span class="ev-chip">'+fmtBookName(bet.book)+' '+bet.team.split(' ').pop()+
+             ' '+fmtOdds(bet.odds)+' <strong style="color:var(--ev)">+'+bet.evPct+'%</strong></span>';
+    }).join('');
+    evRow='<div class="ev-row"><span class="ev-row-label">+EV</span>'+chips+'</div>';
+  }
+
+  return '<div class="'+cardClass+'" style="animation-delay:'+(idx*0.04)+'s">'+
     '<div class="card-header">'+
-    '<span class="sport-badge">'+sportLabel(g.sport)+'</span>'+newBadge+blBadge+
+    '<span class="sport-badge">'+sportLabel(g.sport)+'</span>'+newBadge+blBadge+evBadge+
     '<span class="game-time">'+fmtTime(g.commenceTime)+'</span>'+
     '<span class="rlm-badge '+g.strength+'">'+badge+'</span>'+
     '</div>'+
@@ -611,8 +695,9 @@ function renderCard(g,idx,isNew){
     '<div class="metric-box"><div class="metric-label">Move</div><div class="metric-value '+diffClass+'">'+diffVal+'</div></div>'+
     '<div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:'+sharpColor+'">'+sharpVal+'</div></div>'+
     (g.pinVsSoftGap!==null?'<div class="metric-box"><div class="metric-label">Pin vs Soft</div><div class="metric-value '+(g.pinVsSoftGap<0?'mv-pos':g.pinVsSoftGap>0?'mv-neg':'mv-neu')+'">'+(g.pinVsSoftGap>0?'+':'')+g.pinVsSoftGap.toFixed(1)+'</div></div>':'')+
+    evMetric+
     '</div></div>'+
-    signal+baseNote+'</div>';
+    signal+baseNote+evRow+'</div>';
 }
 
 // ─── PUSHOVER ────────────────────────────────────────────────────────────────
@@ -707,7 +792,18 @@ async function runScan(isAuto){
     addLog('Baseline locked \u2014 '+Object.keys(baseline).length+' game(s) at '+nowStr(),'sent');
   }
 
-  results.sort(function(a,b){var o={strong:0,moderate:1,watch:2};return o[a.strength]-o[b.strength];});
+  results.sort(function(a,b){
+    function score(g){
+      var hasEV=g.evData&&g.evData.hasEV;
+      if(g.strength==='strong'&&hasEV)return 0;
+      if(g.strength==='strong')return 1;
+      if(g.strength==='moderate'&&hasEV)return 2;
+      if(g.strength==='moderate')return 3;
+      if(hasEV)return 4;
+      return 5;
+    }
+    return score(a)-score(b);
+  });
 
   // Alerts — never alert on baseline scan
   var newOnes=[];
@@ -732,8 +828,10 @@ async function runScan(isAuto){
 
   var strong=results.filter(function(x){return x.strength==='strong';}).length;
   var moderate=results.filter(function(x){return x.strength==='moderate';}).length;
+  var evCount=results.filter(function(x){return x.evData&&x.evData.hasEV;}).length;
   document.getElementById('sumStrong').textContent=strong;
   document.getElementById('sumModerate').textContent=moderate;
+  document.getElementById('sumEV').textContent=evCount;
   document.getElementById('sumTotal').textContent=watchlistGames.length;
   document.getElementById('summaryBar').style.display='flex';
   document.getElementById('lastScanInfo').innerHTML='Last scan: '+nowStr()+'<br>'+results.length+' evaluated &middot; '+(fetchErrors.length?fetchErrors.length+' error(s)':'all ok');
@@ -872,7 +970,7 @@ function clearSettings(){
   try{localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(BASELINE_KEY);}catch(e){}
   document.getElementById('apiKey').value='';
   document.getElementById('poUserKey').value='';document.getElementById('poAppToken').value='';
-  document.getElementById('scanInterval').value='15';document.getElementById('rlmThreshold').value='1.0';
+  document.getElementById('scanInterval').value='15';document.getElementById('rlmThreshold').value='0.5';
   document.getElementById('poChip').textContent='Not configured';document.getElementById('poChip').className='po-chip off';
   baseline={};baselineLocked=false;
   document.getElementById('baselineBar').classList.remove('active');
