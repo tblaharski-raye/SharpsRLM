@@ -404,28 +404,97 @@ async function loadGames(){
 }
 
 // ─── LINE MOVEMENT ────────────────────────────────────────────────────────────
+// Extract spread from any ESPN odds item — field names vary by provider/endpoint
+function extractSpread(item){
+  if(!item)return null;
+  if(item.spread!==undefined&&item.spread!==null)return item.spread;
+  if(item.line!==undefined&&item.line!==null)return item.line;
+  if(item.pointSpread!==undefined&&item.pointSpread!==null)return item.pointSpread;
+  if(item.homeTeamOdds){
+    if(item.homeTeamOdds.spreadOdds!==undefined)return item.homeTeamOdds.spreadOdds;
+    if(item.homeTeamOdds.spread!==undefined)return item.homeTeamOdds.spread;
+    if(item.homeTeamOdds.pointSpread!==undefined)return item.homeTeamOdds.pointSpread;
+  }
+  return null;
+}
+function extractHomeML(item){
+  if(!item)return null;
+  if(item.homeOdds!==undefined)return item.homeOdds;
+  if(item.homeTeamOdds&&item.homeTeamOdds.moneyLine!==undefined)return item.homeTeamOdds.moneyLine;
+  if(item.homeTeamOdds&&item.homeTeamOdds.odds!==undefined)return item.homeTeamOdds.odds;
+  return null;
+}
+function extractAwayML(item){
+  if(!item)return null;
+  if(item.awayOdds!==undefined)return item.awayOdds;
+  if(item.awayTeamOdds&&item.awayTeamOdds.moneyLine!==undefined)return item.awayTeamOdds.moneyLine;
+  if(item.awayTeamOdds&&item.awayTeamOdds.odds!==undefined)return item.awayTeamOdds.odds;
+  return null;
+}
+function extractOpenSpread(item){
+  if(!item)return null;
+  // ESPN stores opening line in these fields
+  if(item.open){
+    var s=extractSpread(item.open);
+    if(s!==null)return s;
+  }
+  if(item.openingLine!==undefined&&item.openingLine!==null)return item.openingLine;
+  if(item.spread!==undefined&&item.spread!==null){
+    // Some providers use a separate openSpread field
+    if(item.openSpread!==undefined&&item.openSpread!==null)return item.openSpread;
+  }
+  return null;
+}
+
 async function fetchCurrentLine(ev){
+  // Strategy 1: hit the /odds endpoint directly (what ESPN website uses)
+  // This returns current lines for all providers in one call
+  var oddsUrl='https://sports.core.api.espn.com/v2/sports/'+ev.espnPath+'/events/'+ev.espn_id+'/competitions/'+ev.espn_id+'/odds';
+  try{
+    var resp=await fetch(oddsUrl);
+    if(resp.ok){
+      var data=await resp.json();
+      var items=data.items||[];
+      for(var i=0;i<items.length;i++){
+        var item=items[i];
+        // Each item is a provider's odds — try to extract spread
+        var spread=extractSpread(item);
+        if(spread===null)continue;
+        var openSpread=extractOpenSpread(item);
+        return{
+          spread:roundHalf(spread),
+          openSpread:openSpread!==null?roundHalf(openSpread):null,
+          mlHome:extractHomeML(item),
+          mlAway:extractAwayML(item),
+          providerId:'espn-odds',
+          providerName:item.provider&&item.provider.name?item.provider.name:'ESPN',
+          entryCount:1
+        };
+      }
+    }
+  }catch(e){}
+
+  // Strategy 2: try movement history endpoint per provider
   for(var pi=0;pi<PROVIDERS.length;pi++){
     var pid=PROVIDERS[pi];
     var url='https://sports.core.api.espn.com/v2/sports/'+ev.espnPath+'/events/'+ev.espn_id+'/competitions/'+ev.espn_id+'/odds/'+pid+'/history/0/movement?limit=100';
     try{
-      var resp=await fetch(url);
-      if(!resp.ok)continue;
-      var data=await resp.json();
-      if(!data.items||!data.items.length)continue;
-      var newest=data.items[0];
-      function getSpread(item){
-        if(item.spread!==undefined)return item.spread;
-        if(item.line!==undefined)return item.line;
-        if(item.pointSpread!==undefined)return item.pointSpread;
-        if(item.homeTeamOdds&&item.homeTeamOdds.spreadOdds!==undefined)return item.homeTeamOdds.spreadOdds;
-        return null;
-      }
-      function getHomeML(item){if(item.homeOdds!==undefined)return item.homeOdds;if(item.homeTeamOdds&&item.homeTeamOdds.moneyLine!==undefined)return item.homeTeamOdds.moneyLine;return null;}
-      function getAwayML(item){if(item.awayOdds!==undefined)return item.awayOdds;if(item.awayTeamOdds&&item.awayTeamOdds.moneyLine!==undefined)return item.awayTeamOdds.moneyLine;return null;}
-      var spread=getSpread(newest);
-      if(spread===null)continue;
-      return{spread:roundHalf(spread),mlHome:getHomeML(newest),mlAway:getAwayML(newest),providerId:pid,entryCount:data.items.length};
+      var resp2=await fetch(url);
+      if(!resp2.ok)continue;
+      var data2=await resp2.json();
+      if(!data2.items||!data2.items.length)continue;
+      var newest=data2.items[0];
+      var spread2=extractSpread(newest);
+      if(spread2===null)continue;
+      return{
+        spread:roundHalf(spread2),
+        openSpread:data2.items.length>1?roundHalf(extractSpread(data2.items[data2.items.length-1])):null,
+        mlHome:extractHomeML(newest),
+        mlAway:extractAwayML(newest),
+        providerId:pid,
+        providerName:{1004:'Consensus',38:'Caesars',1003:'Numberfire',1002:'TeamRankings'}[pid]||('Provider '+pid),
+        entryCount:data2.items.length
+      };
     }catch(e){continue;}
   }
   return null;
@@ -438,7 +507,7 @@ function analyzeRLM(ev,current,threshold){
   var isNewBaseline=!base;
   // If no baseline yet, this IS the baseline — no movement to report
   if(!base){
-    return{strength:'watch',reason:'Baseline set at '+fmtSpread(current.spread)+' — tracking movement from here',sharp:null,diff:0,baseSpread:current.spread,curSpread:current.spread,isBaseline:true,mlHome:current.mlHome,mlAway:current.mlAway};
+    return{strength:'watch',reason:'Baseline set at '+fmtSpread(current.spread)+' via '+current.providerName+' — tracking movement from here',sharp:null,diff:0,baseSpread:current.spread,curSpread:current.spread,isBaseline:true,mlHome:current.mlHome,mlAway:current.mlAway};
   }
   var diff=roundHalf(current.spread-base.spread);
   var absDiff=Math.abs(diff);
@@ -447,11 +516,17 @@ function analyzeRLM(ev,current,threshold){
   var strength='watch';
   if(absDiff>=2.0)strength='strong';
   else if(absDiff>=threshold)strength='moderate';
-  var provName={1004:'Consensus',38:'Caesars',1003:'Numberfire',1002:'TeamRankings'}[current.providerId]||('Provider '+current.providerId);
+  // If the odds endpoint gave us an open line, show open→current instead of baseline→current
+  var displayBase=base.spread;
+  var openNote='';
+  if(current.openSpread!==null&&current.openSpread!==undefined){
+    var openDiff=roundHalf(current.spread-current.openSpread);
+    openNote=' · ESPN open: '+fmtSpread(current.openSpread)+' (ESPN move: '+(openDiff>0?'+':'')+openDiff.toFixed(1)+'pt)';
+  }
   var reason=absDiff>=0.5?
-    provName+' · Baseline '+fmtSpread(base.spread)+' \u2192 Current '+fmtSpread(current.spread)+' ('+(diff>0?'+':'')+diff.toFixed(1)+' pts)':
-    provName+' · Baseline '+fmtSpread(base.spread)+' \u2192 Current '+fmtSpread(current.spread)+' · No significant move';
-  return{strength:strength,sharp:sharpSide,diff:diff,baseSpread:base.spread,curSpread:current.spread,isBaseline:false,mlHome:current.mlHome,mlAway:current.mlAway,baseMLHome:base.mlHome,baseMLAway:base.mlAway,providerId:current.providerId,reason:reason};
+    current.providerName+' · Your baseline '+fmtSpread(base.spread)+' \u2192 Current '+fmtSpread(current.spread)+' ('+(diff>0?'+':'')+diff.toFixed(1)+' pts)'+openNote:
+    current.providerName+' · Your baseline '+fmtSpread(base.spread)+' \u2192 Current '+fmtSpread(current.spread)+' · No significant move'+openNote;
+  return{strength:strength,sharp:sharpSide,diff:diff,baseSpread:base.spread,curSpread:current.spread,openSpread:current.openSpread,isBaseline:false,mlHome:current.mlHome,mlAway:current.mlAway,baseMLHome:base.mlHome,baseMLAway:base.mlAway,providerId:current.providerId,providerName:current.providerName,reason:reason};
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
