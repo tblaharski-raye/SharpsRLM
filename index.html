@@ -4,201 +4,172 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RLM Detector</title>
+<title>RLM Detector v5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#0a0c0f; --surface:#111318; --surface2:#181c24; --border:#1e2530;
-  --accent:#00e5ff; --accent2:#ff3d5a; --gold:#ffd166; --green:#06d6a0;
-  --text:#e8edf5; --muted:#5a6478;
-  --mono:'IBM Plex Mono',monospace; --display:'Barlow Condensed',sans-serif;
-}
+:root{--bg:#0a0c0f;--surface:#111318;--surface2:#181c24;--border:#1e2530;--accent:#00e5ff;--accent2:#ff3d5a;--gold:#ffd166;--green:#06d6a0;--text:#e8edf5;--muted:#5a6478;--mono:'IBM Plex Mono',monospace;--display:'Barlow Condensed',sans-serif;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--display);min-height:100vh;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;
-  background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
-  background-size:40px 40px;pointer-events:none;z-index:0;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
 .wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 20px 60px;}
-
-header{border-bottom:1px solid var(–border);padding:24px 0 20px;margin-bottom:24px;}
-.logo-eyebrow{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px;}
+header{border-bottom:1px solid var(--border);padding:24px 0 20px;margin-bottom:24px;}
+.logo-eyebrow{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px;}
 .logo{font-size:48px;font-weight:900;letter-spacing:-.02em;line-height:1;}
-.logo span{color:var(–accent);}
-.logo-sub{font-family:var(–mono);font-size:11px;color:var(–muted);margin-top:6px;letter-spacing:.1em;}
-
-.section-label{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
-.section-label::after{content:’’;flex:1;height:1px;background:var(–border);}
-
-.config-panel{background:var(–surface);border:1px solid var(–border);border-radius:4px;padding:20px 24px;margin-bottom:16px;display:flex;flex-direction:column;gap:18px;}
+.logo span{color:var(--accent);}
+.logo-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.1em;}
+.section-label{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.config-panel{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:20px 24px;margin-bottom:16px;display:flex;flex-direction:column;gap:18px;}
 .config-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
 .field-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:160px;}
-label{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.15em;text-transform:uppercase;}
-input[type=text],input[type=date],input[type=number]{
-background:var(–bg);border:1px solid var(–border);color:var(–text);
-font-family:var(–mono);font-size:13px;padding:10px 14px;border-radius:3px;outline:none;transition:border-color .2s;width:100%;}
-input:focus{border-color:var(–accent);}
+label{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;}
+input[type=text],input[type=date],input[type=number]{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 14px;border-radius:3px;outline:none;transition:border-color .2s;width:100%;}
+input:focus{border-color:var(--accent);}
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);}
-input[type=number]::-webkit-inner-spin-button{opacity:.4;}
-
 .pill-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.row-label{font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.15em;text-transform:uppercase;margin-right:4px;white-space:nowrap;}
-.pill{background:var(–surface2);border:1px solid var(–border);color:var(–muted);font-family:var(–display);font-size:13px;font-weight:700;letter-spacing:.08em;padding:6px 14px;border-radius:2px;cursor:pointer;transition:all .15s;user-select:none;}
-.pill:hover{border-color:var(–accent);color:var(–accent);}
-.pill.active{background:var(–accent);border-color:var(–accent);color:var(–bg);}
-
-.btn{border:none;font-family:var(–display);font-weight:900;letter-spacing:.1em;text-transform:uppercase;border-radius:3px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
-.btn-primary{background:var(–accent);color:var(–bg);font-size:15px;padding:11px 24px;}
+.row-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-right:4px;white-space:nowrap;}
+.pill{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.08em;padding:6px 14px;border-radius:2px;cursor:pointer;transition:all .15s;user-select:none;}
+.pill:hover{border-color:var(--accent);color:var(--accent);}
+.pill.active{background:var(--accent);border-color:var(--accent);color:var(--bg);}
+.btn{border:none;font-family:var(--display);font-weight:900;letter-spacing:.1em;text-transform:uppercase;border-radius:3px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.btn-primary{background:var(--accent);color:var(--bg);font-size:15px;padding:11px 24px;}
 .btn-primary:hover{background:#33eaff;transform:translateY(-1px);}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;}
-.btn-green{background:var(–green);color:var(–bg);font-size:15px;padding:11px 24px;}
+.btn-green{background:var(--green);color:var(--bg);font-size:15px;padding:11px 24px;}
 .btn-green:hover{background:#0ff5bd;transform:translateY(-1px);}
 .btn-green:disabled{opacity:.4;cursor:not-allowed;transform:none;}
-.btn-danger{background:transparent;color:var(–accent2);border:1px solid var(–accent2);font-size:13px;padding:10px 18px;}
+.btn-danger{background:transparent;color:var(--accent2);border:1px solid var(--accent2);font-size:13px;padding:10px 18px;}
 .btn-danger:hover{background:rgba(255,61,90,.1);}
-.btn-secondary{background:transparent;color:var(–muted);border:1px solid var(–border);font-size:13px;padding:10px 18px;}
-.btn-secondary:hover{border-color:var(–accent);color:var(–accent);}
+.btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:13px;padding:10px 18px;}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
 .btn-secondary:disabled{opacity:.4;cursor:not-allowed;}
-
 .step-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-.step-badge{font-family:var(–mono);font-size:10px;padding:2px 8px;border-radius:2px;font-weight:600;border:1px solid var(–border);background:var(–surface2);color:var(–muted);}
-.step-badge.done-1{background:var(–accent);color:var(–bg);border-color:var(–accent);}
-.step-badge.done-2{background:var(–gold);color:var(–bg);border-color:var(–gold);}
-.step-badge.done-3{background:var(–green);color:var(–bg);border-color:var(–green);}
-.step-arrow{color:var(–border);font-size:20px;flex-shrink:0;}
-.watchlist-chip{font-family:var(–mono);font-size:10px;color:var(–gold);border:1px solid rgba(255,209,102,.4);padding:3px 9px;border-radius:2px;display:none;}
-
-.po-chip{font-family:var(–mono);font-size:10px;padding:4px 10px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;flex-shrink:0;}
-.po-chip.ok{color:var(–green);border:1px solid var(–green);background:rgba(6,214,160,.08);}
-.po-chip.off{color:var(–muted);border:1px solid var(–border);background:transparent;}
-
-.autoscan-bar{display:none;background:var(–surface);border:1px solid var(–border);border-left:3px solid var(–green);border-radius:4px;padding:12px 18px;margin-bottom:16px;align-items:center;gap:16px;flex-wrap:wrap;}
+.step-badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:2px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--muted);}
+.step-badge.done-1{background:var(--accent);color:var(--bg);border-color:var(--accent);}
+.step-badge.done-2{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+.step-badge.done-3{background:var(--green);color:var(--bg);border-color:var(--green);}
+.step-arrow{color:var(--border);font-size:20px;flex-shrink:0;}
+.watchlist-chip{font-family:var(--mono);font-size:10px;color:var(--gold);border:1px solid rgba(255,209,102,.4);padding:3px 9px;border-radius:2px;display:none;}
+.po-chip{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;flex-shrink:0;}
+.po-chip.ok{color:var(--green);border:1px solid var(--green);background:rgba(6,214,160,.08);}
+.po-chip.off{color:var(--muted);border:1px solid var(--border);background:transparent;}
+.baseline-bar{display:none;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:4px;padding:12px 18px;margin-bottom:16px;align-items:center;gap:16px;flex-wrap:wrap;}
+.baseline-bar.active{display:flex;}
+.baseline-info{font-family:var(--mono);font-size:12px;color:var(--text);flex:1;line-height:1.6;}
+.baseline-info .muted{color:var(--muted);}
+.autoscan-bar{display:none;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:4px;padding:12px 18px;margin-bottom:16px;align-items:center;gap:16px;flex-wrap:wrap;}
 .autoscan-bar.active{display:flex;}
-.live-dot{width:8px;height:8px;border-radius:50%;background:var(–green);animation:blink 1.4s ease-in-out infinite;flex-shrink:0;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 1.4s ease-in-out infinite;flex-shrink:0;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
-.autoscan-info{font-family:var(–mono);font-size:12px;color:var(–text);flex:1;line-height:1.6;}
-.autoscan-info .muted{color:var(–muted);}
-.countdown{font-family:var(–mono);font-size:24px;font-weight:500;color:var(–accent);letter-spacing:.05em;min-width:65px;text-align:right;}
-
-.legend{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;padding:12px 18px;background:var(–surface);border:1px solid var(–border);border-radius:4px;}
-.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(–muted);}
+.autoscan-info{font-family:var(--mono);font-size:12px;color:var(--text);flex:1;line-height:1.6;}
+.autoscan-info .muted{color:var(--muted);}
+.countdown{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--accent);letter-spacing:.05em;min-width:65px;text-align:right;}
+.legend{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;padding:12px 18px;background:var(--surface);border:1px solid var(--border);border-radius:4px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);}
 .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.dot-strong{background:var(–accent2);box-shadow:0 0 6px var(–accent2);}
-.dot-moderate{background:var(–gold);box-shadow:0 0 6px var(–gold);}
-.dot-watch{background:var(–muted);}
-
-#status{font-family:var(–mono);font-size:12px;color:var(–muted);margin-bottom:8px;min-height:18px;letter-spacing:.05em;}
-#status.loading{color:var(–accent);}
-#status.error{color:var(–accent2);}
-
-.summary-bar{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;padding:14px 20px;background:var(–surface);border:1px solid var(–border);border-radius:4px;align-items:center;}
+.dot-strong{background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
+.dot-moderate{background:var(--gold);box-shadow:0 0 6px var(--gold);}
+.dot-watch{background:var(--muted);}
+#status{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:8px;min-height:18px;letter-spacing:.05em;}
+#status.loading{color:var(--accent);}
+#status.error{color:var(--accent2);}
+.summary-bar{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:4px;align-items:center;}
 .sum-item{display:flex;flex-direction:column;gap:2px;}
 .sum-val{font-size:28px;font-weight:700;line-height:1;}
-.sum-lbl{font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.1em;text-transform:uppercase;}
-.sum-val.r{color:var(–accent2);} .sum-val.y{color:var(–gold);} .sum-val.b{color:var(–accent);}
-.sep{width:1px;background:var(–border);align-self:stretch;margin:0 4px;}
-.last-scan-info{font-family:var(–mono);font-size:10px;color:var(–muted);margin-left:auto;line-height:1.7;text-align:right;}
-
+.sum-lbl{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.sum-val.r{color:var(--accent2);}.sum-val.y{color:var(--gold);}.sum-val.b{color:var(--accent);}
+.sep{width:1px;background:var(--border);align-self:stretch;margin:0 4px;}
+.last-scan-info{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:auto;line-height:1.7;text-align:right;}
 #results{display:flex;flex-direction:column;gap:12px;}
-
-.game-card{background:var(–surface);border:1px solid var(–border);border-radius:4px;overflow:hidden;animation:fadeUp .3s ease both;}
+.game-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;animation:fadeUp .3s ease both;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.game-card.rlm-strong{border-color:var(–accent2);}
-.game-card.rlm-moderate{border-color:var(–gold);}
+.game-card.rlm-strong{border-color:var(--accent2);}
+.game-card.rlm-moderate{border-color:var(--gold);}
 .game-card.newly-flagged{animation:fadeUp .3s ease both,flashNew 1.5s ease .3s;}
 @keyframes flashNew{0%{box-shadow:0 0 0 3px rgba(255,61,90,.5);}100%{box-shadow:none;}}
-
-.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(–border);gap:10px;flex-wrap:wrap;}
-.sport-badge{font-family:var(–mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:var(–surface2);color:var(–muted);border:1px solid var(–border);flex-shrink:0;}
-.game-time{font-family:var(–mono);font-size:11px;color:var(–muted);margin-left:auto;}
-.new-badge{font-family:var(–mono);font-size:9px;color:var(–bg);background:var(–accent2);padding:2px 7px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;}
-.rlm-badge{font-family:var(–mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:2px;flex-shrink:0;}
-.rlm-badge.strong{background:rgba(255,61,90,.15);color:var(–accent2);border:1px solid var(–accent2);}
-.rlm-badge.moderate{background:rgba(255,209,102,.12);color:var(–gold);border:1px solid var(–gold);}
-.rlm-badge.watch{background:var(–surface2);color:var(–muted);border:1px solid var(–border);}
-
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap;}
+.sport-badge{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);flex-shrink:0;}
+.game-time{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.new-badge{font-family:var(--mono);font-size:9px;color:var(--bg);background:var(--accent2);padding:2px 7px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;}
+.baseline-badge{font-family:var(--mono);font-size:9px;color:var(--bg);background:var(--gold);padding:2px 7px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase;}
+.rlm-badge{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:2px;flex-shrink:0;}
+.rlm-badge.strong{background:rgba(255,61,90,.15);color:var(--accent2);border:1px solid var(--accent2);}
+.rlm-badge.moderate{background:rgba(255,209,102,.12);color:var(--gold);border:1px solid var(--gold);}
+.rlm-badge.watch{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
 .card-body{padding:14px 16px;display:flex;gap:16px;flex-wrap:wrap;}
 .matchup{flex:1;min-width:180px;display:flex;flex-direction:column;gap:6px;}
 .team-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .team-name{font-size:22px;font-weight:700;letter-spacing:.02em;line-height:1;}
-.team-name.sharp-side{color:var(–accent);}
-.spread{font-family:var(–mono);font-size:13px;background:var(–surface2);padding:3px 8px;border-radius:2px;white-space:nowrap;}
-.vs-divider{font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.1em;}
+.team-name.sharp-side{color:var(--accent);}
+.spread{font-family:var(--mono);font-size:13px;background:var(--surface2);padding:3px 8px;border-radius:2px;white-space:nowrap;}
+.vs-divider{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;}
 .metrics{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;}
-.metric-box{background:var(–surface2);border:1px solid var(–border);border-radius:3px;padding:10px 14px;min-width:90px;display:flex;flex-direction:column;gap:4px;}
-.metric-label{font-family:var(–mono);font-size:9px;color:var(–muted);letter-spacing:.15em;text-transform:uppercase;}
-.metric-value{font-family:var(–mono);font-size:18px;font-weight:500;line-height:1;}
-.mv-pos{color:var(–green);} .mv-neg{color:var(–accent2);} .mv-neu{color:var(–gold);}
-.signal-row{padding:10px 16px;background:var(–surface2);border-top:1px solid var(–border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.signal-text{font-family:var(–mono);font-size:11px;color:var(–muted);flex:1;line-height:1.6;}
-.signal-text strong{color:var(–text);}
-.sharp-tag{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;}
-.no-movement{font-family:var(–mono);font-size:11px;color:var(–muted);padding:8px 16px;border-top:1px solid var(–border);background:var(–surface2);}
-
-.empty-state{text-align:center;padding:60px 20px;color:var(–muted);font-family:var(–mono);font-size:13px;border:1px dashed var(–border);border-radius:4px;}
-.empty-state .big{font-size:36px;font-family:var(–display);font-weight:900;color:var(–surface2);display:block;margin-bottom:12px;}
-
+.metric-box{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px 14px;min-width:88px;display:flex;flex-direction:column;gap:4px;}
+.metric-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;}
+.metric-value{font-family:var(--mono);font-size:18px;font-weight:500;line-height:1;}
+.mv-pos{color:var(--green);}.mv-neg{color:var(--accent2);}.mv-neu{color:var(--gold);}
+.signal-row{padding:10px 16px;background:var(--surface2);border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.signal-text{font-family:var(--mono);font-size:11px;color:var(--muted);flex:1;line-height:1.6;}
+.signal-text strong{color:var(--text);}
+.sharp-tag{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);font-family:var(--mono);font-size:13px;border:1px dashed var(--border);border-radius:4px;}
+.empty-state .big{font-size:36px;font-family:var(--display);font-weight:900;color:var(--surface2);display:block;margin-bottom:12px;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(–surface);border:1px solid var(–border);border-radius:6px;width:100%;max-width:700px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
-.modal-header{padding:18px 20px;border-bottom:1px solid var(–border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:6px;width:100%;max-width:700px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .modal-title{font-size:24px;font-weight:900;}
-.modal-subtitle{font-family:var(–mono);font-size:11px;color:var(–muted);}
-.modal-close{background:none;border:none;color:var(–muted);font-size:24px;cursor:pointer;line-height:1;padding:0 4px;}
-.modal-close:hover{color:var(–text);}
+.modal-subtitle{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.modal-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:0 4px;}
+.modal-close:hover{color:var(--text);}
 .modal-body{overflow-y:auto;padding:16px 20px;flex:1;}
-.modal-footer{padding:14px 20px;border-top:1px solid var(–border);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
-.modal-note{font-family:var(–mono);font-size:10px;color:var(–muted);flex:1;line-height:1.6;}
-.picker-loading{font-family:var(–mono);font-size:12px;color:var(–muted);text-align:center;padding:40px;}
-.picker-sport-header{font-family:var(–mono);font-size:10px;color:var(–accent);letter-spacing:.2em;text-transform:uppercase;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(–border);}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
+.modal-note{font-family:var(--mono);font-size:10px;color:var(--muted);flex:1;line-height:1.6;}
+.picker-loading{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:40px;}
+.picker-sport-header{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.2em;text-transform:uppercase;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
 .picker-sport-header:first-child{margin-top:0;}
 .picker-game{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:3px;cursor:pointer;transition:background .12s;border:1px solid transparent;margin-bottom:4px;}
-.picker-game:hover{background:var(–surface2);}
+.picker-game:hover{background:var(--surface2);}
 .picker-game.selected{background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.18);}
-.picker-game input[type=checkbox]{accent-color:var(–accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;}
+.picker-game input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;}
 .picker-game-name{font-size:16px;font-weight:700;flex:1;}
-.picker-game-time{font-family:var(–mono);font-size:10px;color:var(–muted);white-space:nowrap;}
+.picker-game-time{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;}
 .picker-controls{display:flex;gap:12px;margin-bottom:14px;}
-.picker-ctrl-btn{font-family:var(–mono);font-size:10px;color:var(–accent);background:none;border:none;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;text-decoration:underline;padding:0;}
-
+.picker-ctrl-btn{font-family:var(--mono);font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;text-decoration:underline;padding:0;}
 .notif-log{margin-top:28px;}
-.notif-entry{font-family:var(–mono);font-size:11px;padding:7px 0;border-bottom:1px solid var(–border);display:flex;gap:14px;}
-.nt{color:var(–muted);flex-shrink:0;}
-.nm{color:var(–text);}
-.notif-entry.sent .nm{color:var(–green);}
-.notif-entry.fail .nm{color:var(–accent2);}
-
+.notif-entry{font-family:var(--mono);font-size:11px;padding:7px 0;border-bottom:1px solid var(--border);display:flex;gap:14px;}
+.nt{color:var(--muted);flex-shrink:0;}
+.nm{color:var(--text);}
+.notif-entry.sent .nm{color:var(--green);}
+.notif-entry.fail .nm{color:var(--accent2);}
 ::-webkit-scrollbar{width:6px;}
-::-webkit-scrollbar-track{background:var(–bg);}
-::-webkit-scrollbar-thumb{background:var(–border);border-radius:3px;}
-footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-family:var(–mono);font-size:10px;color:var(–muted);letter-spacing:.08em;text-align:center;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+footer{margin-top:32px;padding:20px 0;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-align:center;}
 </style>
-
 </head>
 <body>
 <div class="wrap">
-
 <header>
-  <div class="logo-eyebrow">// sharp money scanner v5 — ESPN line movement engine</div>
+  <div class="logo-eyebrow">// sharp money scanner v5 &mdash; baseline tracking</div>
   <div class="logo">RLM<span>.</span>DETECT</div>
-  <div class="logo-sub">load games &middot; select watchlist &middot; auto-scan &middot; true line movement tracking &middot; pushover alerts</div>
+  <div class="logo-sub">morning baseline lock &middot; true line movement &middot; ESPN free data &middot; pushover alerts</div>
 </header>
-
 <div class="section-label">Configuration</div>
 <div class="config-panel">
   <div class="config-row">
-    <div class="field-group" style="max-width:170px;">
+    <div class="field-group" style="max-width:180px;">
       <label>Date</label>
       <input type="date" id="scanDate">
     </div>
-    <div class="field-group" style="max-width:140px;">
+    <div class="field-group" style="max-width:150px;">
       <label>Interval (min)</label>
       <input type="number" id="scanInterval" value="15" min="5" max="120" style="text-align:center;">
     </div>
-    <div class="field-group" style="max-width:200px;">
-      <label>Min Line Move (pts)</label>
-      <input type="number" id="minMove" value="1.0" min="0.5" max="5" step="0.5" style="text-align:center;">
-      <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">open→current threshold</span>
+    <div class="field-group" style="max-width:170px;">
+      <label>RLM Threshold (pts)</label>
+      <input type="number" id="rlmThreshold" value="1.5" min="0.5" max="5" step="0.5" style="text-align:center;">
     </div>
   </div>
   <div class="config-row">
@@ -217,12 +188,12 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-f
   </div>
   <div class="pill-row">
     <span class="row-label">Sports:</span>
-    <div class="pill active" data-sport="americanfootball_nfl">NFL</div>
-    <div class="pill active" data-sport="basketball_nba">NBA</div>
-    <div class="pill active" data-sport="baseball_mlb">MLB</div>
-    <div class="pill active" data-sport="icehockey_nhl">NHL</div>
-    <div class="pill active" data-sport="americanfootball_ncaaf">NCAAF</div>
-    <div class="pill active" data-sport="basketball_ncaab">NCAAM</div>
+    <div class="pill active" data-sport="nfl">NFL</div>
+    <div class="pill active" data-sport="nba">NBA</div>
+    <div class="pill active" data-sport="mlb">MLB</div>
+    <div class="pill active" data-sport="nhl">NHL</div>
+    <div class="pill active" data-sport="ncaaf">NCAAF</div>
+    <div class="pill active" data-sport="ncaab">NCAAM</div>
   </div>
   <div class="pill-row">
     <span class="row-label">Notify on:</span>
@@ -242,69 +213,60 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-f
       <span id="badge3" class="step-badge">3</span>
       <button class="btn btn-green" id="startBtn" onclick="startAutoScan()" disabled>&#x25B6; Start Auto-Scan</button>
       <button class="btn btn-danger" id="stopBtn" style="display:none;" onclick="stopAutoScan()">&#x25A0; Stop</button>
+      <button class="btn btn-secondary" id="resetBaselineBtn" onclick="resetBaseline()" style="display:none;font-size:11px;padding:8px 14px;">&#x21BA; Reset Baseline</button>
       <button class="btn btn-secondary" onclick="clearSettings()" style="margin-left:auto;font-size:11px;padding:8px 14px;">&#x1F5D1; Clear Saved</button>
     </div>
   </div>
 </div>
 
+<div class="baseline-bar" id="baselineBar">
+  <div style="font-size:18px;">&#x1F4CD;</div>
+  <div class="baseline-info">
+    <strong>Baseline locked</strong> &nbsp;&middot;&nbsp;
+    <span class="muted">Set: </span><span id="baselineTimeEl">&mdash;</span> &nbsp;&middot;&nbsp;
+    <span class="muted">Games: </span><span id="baselineCountEl">0</span>
+    &nbsp;&middot;&nbsp;<span class="muted" style="font-size:10px;">All movement measured from this snapshot</span>
+  </div>
+</div>
+
 <div class="autoscan-bar" id="autoscanBar">
   <div class="live-dot"></div>
-  <div class="autoscan-info">
-    <strong>Auto-scan active</strong> &nbsp;&middot;&nbsp;
-    <span class="muted">Scans: </span><span id="scanCountEl">0</span> &nbsp;&middot;&nbsp;
-    <span class="muted">Last: </span><span id="lastScanEl">&#x2014;</span>
-  </div>
+  <div class="autoscan-info"><strong>Auto-scan active</strong> &nbsp;&middot;&nbsp; <span class="muted">Scans: </span><span id="scanCountEl">0</span> &nbsp;&middot;&nbsp; <span class="muted">Last: </span><span id="lastScanEl">&mdash;</span></div>
   <div>
     <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.1em;text-align:right;margin-bottom:2px;">NEXT SCAN</div>
-    <div class="countdown" id="countdownEl">&#x2014;</div>
+    <div class="countdown" id="countdownEl">&mdash;</div>
   </div>
 </div>
 
 <div class="legend">
-  <div class="legend-item"><div class="dot dot-strong"></div> Strong RLM &mdash; Line moved &ge;1.5pts opposite public lean</div>
-  <div class="legend-item"><div class="dot dot-moderate"></div> Moderate RLM &mdash; Line moved &ge;1.0pt from open</div>
-  <div class="legend-item"><div class="dot dot-watch"></div> Watching &mdash; Line movement below threshold</div>
+  <div class="legend-item"><div class="dot dot-strong"></div>Strong RLM &mdash; 2+ pt move from your morning baseline</div>
+  <div class="legend-item"><div class="dot dot-moderate"></div>Moderate RLM &mdash; threshold pts move from baseline</div>
+  <div class="legend-item"><div class="dot dot-watch"></div>Watching &mdash; below threshold</div>
 </div>
 
-<div id="status">Step 1 &mdash; Click Load Games. No API key required.</div>
-
+<div id="status">Step 1 &mdash; Click Load Games, then run your first scan to lock in the morning baseline.</div>
 <div id="summaryBar" style="display:none;" class="summary-bar">
   <div class="sum-item"><div class="sum-val r" id="sumStrong">0</div><div class="sum-lbl">Strong RLMs</div></div>
   <div class="sep"></div>
   <div class="sum-item"><div class="sum-val y" id="sumModerate">0</div><div class="sum-lbl">Moderate RLMs</div></div>
   <div class="sep"></div>
-  <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Watching</div></div>
+  <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Games Watching</div></div>
   <div class="last-scan-info" id="lastScanInfo"></div>
 </div>
-
-<div id="results">
-  <div class="empty-state">
-    <span class="big">READY</span>
-    No API key needed &mdash; powered entirely by ESPN line movement data
-  </div>
-</div>
-
+<div id="results"><div class="empty-state"><span class="big">READY</span>Step 1: Load Games &rarr; Step 2: Select games &rarr; Step 3: Start Auto-Scan<br><br><span style="font-size:11px;color:var(--muted);">First scan locks in your morning baseline. Every scan after tracks movement from that point.</span></div></div>
 <div id="notifLogWrap" style="display:none;" class="notif-log">
   <div class="section-label" style="margin-top:24px;">Notification Log</div>
   <div id="notifLog"></div>
 </div>
-
 </div>
-
-<!-- GAME PICKER MODAL -->
 
 <div class="modal-overlay" id="pickerModal">
   <div class="modal">
     <div class="modal-header">
-      <div>
-        <div class="modal-title">Select Games to Watch</div>
-        <div class="modal-subtitle" id="pickerSubtitle">Choose which games to monitor for RLMs</div>
-      </div>
+      <div><div class="modal-title">Select Games to Watch</div><div class="modal-subtitle" id="pickerSubtitle">Choose games to monitor</div></div>
       <button class="modal-close" onclick="closePicker()">&#x00D7;</button>
     </div>
-    <div class="modal-body" id="pickerBody">
-      <div class="picker-loading">Load games first (Step 1)</div>
-    </div>
+    <div class="modal-body" id="pickerBody"><div class="picker-loading">Load games first</div></div>
     <div class="modal-footer">
       <div class="modal-note">Select at least one game to enable auto-scan.</div>
       <button class="btn btn-secondary" onclick="closePicker()">Cancel</button>
@@ -313,610 +275,471 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(–border);font-f
   </div>
 </div>
 
-<footer>RLM.DETECT v5 &mdash; ESPN line movement engine &mdash; no API key required &mdash; Pushover alerts &mdash; Not financial advice</footer>
+<footer>RLM.DETECT v5 &mdash; ESPN line movement &middot; Baseline tracking &middot; Pushover &middot; Not financial advice</footer>
 
 <script>
-// ─── STATE ───────────────────────────────────────────────────────────────────
-var autoTimer = null, countdownTimer = null, nextScanAt = null;
-var scanCount = 0;
-var previousRLMs = new Set();
-var allFetchedGames = [];   // ESPN game objects with espn_id, sport config
-var watchlist = new Set();
-var pickerTemp = new Set();
+var autoTimer=null,countdownTimer=null,nextScanAt=null,scanCount=0;
+var previousRLMs=new Set(),allFetchedGames=[],watchlist=new Set(),pickerTemp=new Set();
+// baseline: {gameId -> {spread, mlHome, mlAway, ts}}
+var baseline={};
+var baselineLocked=false;
+var baselineDate='';
+var PROVIDERS=[1004,38,1003,1002];
+var ESPN_PATHS={nfl:'football/nfl',nba:'basketball/nba',mlb:'baseball/mlb',nhl:'hockey/nhl',ncaaf:'football/college-football',ncaab:'basketball/mens-college-basketball'};
+var STORAGE_KEY='rlmdetector_v5';
+var BASELINE_KEY='rlmbaseline_v5';
 
-// ─── ESPN SPORT CONFIG ────────────────────────────────────────────────────────
-// Maps our sport key → ESPN API path segments + provider IDs to try
-// Provider IDs: 1004=consensus, 38=Caesars, 31=WilliamHill, 1002=teamrankings
-var ESPN_SPORTS = {
-  'americanfootball_nfl':   { sport:'football',    league:'nfl',                    providers:[1004,38,31] },
-  'basketball_nba':         { sport:'basketball',  league:'nba',                    providers:[1004,38,31] },
-  'baseball_mlb':           { sport:'baseball',    league:'mlb',                    providers:[1004,38,31] },
-  'icehockey_nhl':          { sport:'hockey',      league:'nhl',                    providers:[1004,38,31] },
-  'americanfootball_ncaaf': { sport:'football',    league:'college-football',        providers:[1004,1002]  },
-  'basketball_ncaab':       { sport:'basketball',  league:'mens-college-basketball', providers:[1004,1002]  }
-};
+document.getElementById('scanDate').value=new Date().toISOString().split('T')[0];
+document.querySelectorAll('.pill').forEach(function(p){p.addEventListener('click',function(){p.classList.toggle('active');});});
 
-// ─── INIT ────────────────────────────────────────────────────────────────────
-document.getElementById('scanDate').value = new Date().toISOString().split('T')[0];
-document.querySelectorAll('.pill').forEach(function(p) {
-  p.addEventListener('click', function() { p.classList.toggle('active'); });
-});
+function sportLabel(k){return{nfl:'NFL',nba:'NBA',mlb:'MLB',nhl:'NHL',ncaaf:'NCAAF',ncaab:'NCAAM'}[k]||k;}
+function fmtSpread(p){if(p===null||p===undefined||isNaN(p))return'N/A';var r=Math.round(p*2)/2;return r>0?'+'+r.toFixed(1):r.toFixed(1);}
+function roundHalf(p){return Math.round(p*2)/2;}
+function fmtTime(iso){try{return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZoneName:'short'});}catch(e){return'';}}
+function nowStr(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+function setStatus(msg,cls){var el=document.getElementById('status');el.textContent=msg;el.className=cls||'';}
+function addLog(msg,cls){
+  document.getElementById('notifLogWrap').style.display='block';
+  var log=document.getElementById('notifLog');
+  var el=document.createElement('div');
+  el.className='notif-entry '+(cls||'');
+  el.innerHTML='<span class="nt">'+nowStr()+'</span><span class="nm">'+msg+'</span>';
+  log.insertBefore(el,log.firstChild);
+  while(log.children.length>80)log.removeChild(log.lastChild);
+}
 
-// ─── UTILS ───────────────────────────────────────────────────────────────────
-function sportLabel(k) {
-  var m = {americanfootball_nfl:'NFL',basketball_nba:'NBA',baseball_mlb:'MLB',icehockey_nhl:'NHL',americanfootball_ncaaf:'NCAAF',basketball_ncaab:'NCAAM'};
-  return m[k] || k;
+// ─── BASELINE ────────────────────────────────────────────────────────────────
+function saveBaseline(){
+  try{
+    localStorage.setItem(BASELINE_KEY,JSON.stringify({date:baselineDate,data:baseline,ts:Date.now()}));
+  }catch(e){}
 }
-function fmtSpread(p) {
-  if (p === null || p === undefined || isNaN(p)) return 'N/A';
-  var r = Math.round(p * 2) / 2;
-  return r > 0 ? '+' + r.toFixed(1) : r.toFixed(1);
+
+function loadBaseline(){
+  try{
+    var raw=localStorage.getItem(BASELINE_KEY);
+    if(!raw)return;
+    var b=JSON.parse(raw);
+    var today=new Date().toISOString().split('T')[0];
+    // Only restore baseline if it's from today
+    if(b.date!==today){localStorage.removeItem(BASELINE_KEY);return;}
+    baseline=b.data||{};
+    baselineDate=b.date;
+    baselineLocked=Object.keys(baseline).length>0;
+    if(baselineLocked)updateBaselineUI();
+  }catch(e){}
 }
-function roundHalf(p) { return Math.round(p * 2) / 2; }
-function fmtTime(iso) {
-  try { return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZoneName:'short'}); } catch(e) { return ''; }
+
+function updateBaselineUI(){
+  var count=Object.keys(baseline).length;
+  document.getElementById('baselineBar').classList.toggle('active',baselineLocked);
+  document.getElementById('baselineCountEl').textContent=count;
+  document.getElementById('resetBaselineBtn').style.display=baselineLocked?'':'none';
+  if(baselineLocked){
+    try{
+      var raw=localStorage.getItem(BASELINE_KEY);
+      if(raw){var b=JSON.parse(raw);document.getElementById('baselineTimeEl').textContent=new Date(b.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+    }catch(e){}
+  }
 }
-function nowStr() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
-function gameKey(ev) { return ev.home_team + '||' + ev.away_team + '||' + ev.commence_time; }
-function setStatus(msg, cls) { var el = document.getElementById('status'); el.textContent = msg; el.className = cls || ''; }
-function addLog(msg, cls) {
-  document.getElementById('notifLogWrap').style.display = 'block';
-  var log = document.getElementById('notifLog');
-  var el = document.createElement('div');
-  el.className = 'notif-entry ' + (cls || '');
-  el.innerHTML = '<span class="nt">' + nowStr() + '</span><span class="nm">' + msg + '</span>';
-  log.insertBefore(el, log.firstChild);
-  while (log.children.length > 80) log.removeChild(log.lastChild);
+
+function resetBaseline(){
+  if(!confirm('Reset baseline? Next scan will become the new baseline.'))return;
+  baseline={};baselineLocked=false;previousRLMs.clear();
+  try{localStorage.removeItem(BASELINE_KEY);}catch(e){}
+  document.getElementById('baselineBar').classList.remove('active');
+  document.getElementById('resetBaselineBtn').style.display='none';
+  addLog('Baseline reset. Next scan will lock new baseline.');
 }
 
 // ─── ESPN FETCH ───────────────────────────────────────────────────────────────
-async function espnFetch(url) {
-  var resp = await fetch(url);
-  if (!resp.ok) throw new Error('ESPN HTTP ' + resp.status);
-  return resp.json();
+async function fetchESPNGames(sportKey,dateStr){
+  var d=dateStr.replace(/-/g,'');
+  var path=ESPN_PATHS[sportKey];
+  if(!path)return[];
+  var extra=sportKey==='ncaab'?'&groups=50&limit=300':'&limit=100';
+  var url='https://site.api.espn.com/apis/site/v2/sports/'+path+'/scoreboard?dates='+d+extra;
+  var resp=await fetch(url);
+  if(!resp.ok)throw new Error('HTTP '+resp.status);
+  var data=await resp.json();
+  if(!data||!data.events)return[];
+  return data.events.map(function(ev){
+    var comp=ev.competitions[0];
+    var home=comp.competitors.find(function(c){return c.homeAway==='home';})||comp.competitors[0];
+    var away=comp.competitors.find(function(c){return c.homeAway==='away';})||comp.competitors[1];
+    return{espn_id:ev.id,home_team:home.team.displayName,away_team:away.team.displayName,commence_time:ev.date,sportKey:sportKey,espnPath:path};
+  });
 }
 
-// ─── STEP 1: LOAD GAMES ──────────────────────────────────────────────────────
-async function loadGames() {
-  var date   = document.getElementById('scanDate').value;
-  var sports = [];
-  document.querySelectorAll('.pill[data-sport].active').forEach(function(p) { sports.push(p.dataset.sport); });
-  if (!sports.length) { setStatus('Select at least one sport.', 'error'); return; }
-
-  var btn = document.getElementById('loadBtn');
-  btn.disabled = true; btn.textContent = 'Loading...';
-  setStatus('Fetching schedule from ESPN...', 'loading');
-
-  var allEvents = [];
-  var sportEventMap = {};
-  var loadErrors = [];
-  var d = date.replace(/-/g, '');
-
-  for (var si = 0; si < sports.length; si++) {
-    var sportKey = sports[si];
-    var cfg = ESPN_SPORTS[sportKey];
-    if (!cfg) continue;
-    try {
-      var extra = sportKey === 'basketball_ncaab' ? '&groups=50&limit=300' : '&limit=100';
-      var url = 'https://site.api.espn.com/apis/site/v2/sports/' + cfg.sport + '/' + cfg.league + '/scoreboard?dates=' + d + extra;
-      var data = await espnFetch(url);
-      var events = [];
-      if (data && data.events) {
-        data.events.forEach(function(ev) {
-          var comp = ev.competitions[0];
-          var home = comp.competitors.find(function(c){return c.homeAway==='home';}) || comp.competitors[0];
-          var away = comp.competitors.find(function(c){return c.homeAway==='away';}) || comp.competitors[1];
-          events.push({
-            espn_id:      ev.id,
-            home_team:    home.team.displayName,
-            away_team:    away.team.displayName,
-            commence_time:ev.date,
-            sportKey:     sportKey,
-            cfg:          cfg
-          });
-        });
-      }
-      sportEventMap[sportKey] = events;
-      events.forEach(function(ev) { allEvents.push(ev); });
-    } catch(e) {
-      loadErrors.push(sportLabel(sportKey) + ': ' + e.message);
-      sportEventMap[sportKey] = [];
-    }
+async function loadGames(){
+  var date=document.getElementById('scanDate').value;
+  var sports=[];
+  document.querySelectorAll('.pill[data-sport].active').forEach(function(p){sports.push(p.dataset.sport);});
+  if(!sports.length){setStatus('Select at least one sport.','error');return;}
+  var btn=document.getElementById('loadBtn');
+  btn.disabled=true;btn.textContent='Loading...';
+  setStatus('Fetching from ESPN...','loading');
+  var allEvents=[],sportEventMap={},loadErrors=[];
+  for(var si=0;si<sports.length;si++){
+    var sport=sports[si];
+    try{var events=await fetchESPNGames(sport,date);sportEventMap[sport]=events;events.forEach(function(ev){allEvents.push(ev);});}
+    catch(e){loadErrors.push(sportLabel(sport)+': '+e.message);sportEventMap[sport]=[];}
   }
-
-  btn.disabled = false; btn.textContent = 'Load Games';
-
-  if (!allEvents.length) {
-    setStatus('No games found' + (loadErrors.length ? ': ' + loadErrors[0] : ' for ' + date + '.'), 'error');
-    return;
-  }
-
-  allFetchedGames = allEvents;
-  document.getElementById('pickBtn').disabled = false;
-  document.getElementById('badge1').className = 'step-badge done-1';
-
-  var activeSports = sports.filter(function(s) { return sportEventMap[s] && sportEventMap[s].length > 0; });
-  var breakdown = activeSports.map(function(s) { return sportLabel(s) + ': ' + sportEventMap[s].length; }).join(' · ');
-  setStatus(allEvents.length + ' games loaded — ' + breakdown + '. Select games to watch.', '');
-  addLog('Loaded ' + allEvents.length + ' games.' + (loadErrors.length ? ' Errors: ' + loadErrors.join(', ') : ''));
+  btn.disabled=false;btn.textContent='Load Games';
+  if(loadErrors.length&&!allEvents.length){setStatus('ESPN error: '+loadErrors[0],'error');return;}
+  allFetchedGames=allEvents;
+  sports.forEach(function(sport){
+    var pill=document.querySelector('.pill[data-sport="'+sport+'"]');
+    if(!pill)return;
+    var count=sportEventMap[sport]?sportEventMap[sport].length:0;
+    pill.style.opacity=count?'':'0.4';
+    pill.title=count?count+' game(s) today':'No games today';
+  });
+  if(!allEvents.length){setStatus('No games found for '+date+'.','');return;}
+  document.getElementById('pickBtn').disabled=false;
+  document.getElementById('badge1').className='step-badge done-1';
+  var breakdown=sports.filter(function(s){return sportEventMap[s]&&sportEventMap[s].length;}).map(function(s){return sportLabel(s)+': '+sportEventMap[s].length;}).join(' · ');
+  setStatus(allEvents.length+' games loaded — '+breakdown+'. Select games to watch.','');
+  addLog('ESPN loaded '+allEvents.length+' games.'+(loadErrors.length?' Errors: '+loadErrors.join(', '):''));
 }
 
-// ─── ESPN LINE MOVEMENT ───────────────────────────────────────────────────────
-// Try each provider ID in order, return first successful movement data
-async function fetchLineMovement(ev) {
-  var cfg = ev.cfg;
-  var sportPath = cfg.sport + '/leagues/' + cfg.league;
-
-  for (var pi = 0; pi < cfg.providers.length; pi++) {
-    var providerId = cfg.providers[pi];
-    var url = 'https://sports.core.api.espn.com/v2/sports/' + sportPath +
-              '/events/' + ev.espn_id +
-              '/competitions/' + ev.espn_id +
-              '/odds/' + providerId +
-              '/history/0/movement?limit=100';
-    try {
-      var data = await espnFetch(url);
-      if (data && data.items && data.items.length >= 2) {
-        return { items: data.items, providerId: providerId };
+// ─── LINE MOVEMENT ────────────────────────────────────────────────────────────
+async function fetchCurrentLine(ev){
+  for(var pi=0;pi<PROVIDERS.length;pi++){
+    var pid=PROVIDERS[pi];
+    var url='https://sports.core.api.espn.com/v2/sports/'+ev.espnPath+'/events/'+ev.espn_id+'/competitions/'+ev.espn_id+'/odds/'+pid+'/history/0/movement?limit=100';
+    try{
+      var resp=await fetch(url);
+      if(!resp.ok)continue;
+      var data=await resp.json();
+      if(!data.items||!data.items.length)continue;
+      var newest=data.items[0];
+      function getSpread(item){
+        if(item.spread!==undefined)return item.spread;
+        if(item.line!==undefined)return item.line;
+        if(item.pointSpread!==undefined)return item.pointSpread;
+        if(item.homeTeamOdds&&item.homeTeamOdds.spreadOdds!==undefined)return item.homeTeamOdds.spreadOdds;
+        return null;
       }
-    } catch(e) {
-      // try next provider
-    }
+      function getHomeML(item){if(item.homeOdds!==undefined)return item.homeOdds;if(item.homeTeamOdds&&item.homeTeamOdds.moneyLine!==undefined)return item.homeTeamOdds.moneyLine;return null;}
+      function getAwayML(item){if(item.awayOdds!==undefined)return item.awayOdds;if(item.awayTeamOdds&&item.awayTeamOdds.moneyLine!==undefined)return item.awayTeamOdds.moneyLine;return null;}
+      var spread=getSpread(newest);
+      if(spread===null)continue;
+      return{spread:roundHalf(spread),mlHome:getHomeML(newest),mlAway:getAwayML(newest),providerId:pid,entryCount:data.items.length};
+    }catch(e){continue;}
   }
   return null;
 }
 
-// Parse a movement item — ESPN returns different field names per provider
-function parseMovementItem(item) {
-  // Spread: could be 'spread', 'line', 'pointSpread', 'homeSpread'
-  var spread = item.spread !== undefined ? item.spread :
-               item.line   !== undefined ? item.line   :
-               item.pointSpread !== undefined ? item.pointSpread :
-               item.homeSpread  !== undefined ? item.homeSpread  : null;
-
-  // Home moneyline
-  var homeML = item.homeOdds !== undefined ? item.homeOdds :
-               item.homeMoneyLine !== undefined ? item.homeMoneyLine : null;
-
-  // Away moneyline
-  var awayML = item.awayOdds !== undefined ? item.awayOdds :
-               item.awayMoneyLine !== undefined ? item.awayMoneyLine : null;
-
-  // Over/under
-  var total  = item.overUnder !== undefined ? item.overUnder :
-               item.total !== undefined ? item.total : null;
-
-  var ts = item.recordedAt || item.timestamp || item.time || null;
-
-  return { spread: spread !== null ? parseFloat(spread) : null, homeML: homeML, awayML: awayML, total: total, ts: ts };
-}
-
 // ─── RLM ANALYSIS ────────────────────────────────────────────────────────────
-function analyzeRLM(ev, movementResult, minMove) {
-  var items   = movementResult.items;
-  // ESPN returns newest first — so last item = opening, first item = current
-  var opening = parseMovementItem(items[items.length - 1]);
-  var current = parseMovementItem(items[0]);
-
-  if (opening.spread === null || current.spread === null) {
-    return { strength:'watch', reason:'No spread data in movement', opening:opening, current:current, move:0, sharpSide:null };
+function analyzeRLM(ev,current,threshold){
+  if(!current)return{strength:'watch',reason:'No ESPN line data available',sharp:null,diff:0,baseSpread:null,curSpread:null,isBaseline:false};
+  var base=baseline[ev.espn_id];
+  var isNewBaseline=!base;
+  // If no baseline yet, this IS the baseline — no movement to report
+  if(!base){
+    return{strength:'watch',reason:'Baseline set at '+fmtSpread(current.spread)+' — tracking movement from here',sharp:null,diff:0,baseSpread:current.spread,curSpread:current.spread,isBaseline:true,mlHome:current.mlHome,mlAway:current.mlAway};
   }
-
-  // Positive move = home spread increased (home getting worse / away getting better)
-  // Negative move = home spread decreased (home getting better)
-  var move = roundHalf(current.spread - opening.spread);
-  var absMoved = Math.abs(move);
-
-  // Determine public lean from opening line:
-  // If home opened as favorite (negative spread), public typically bets home favorite
-  // If away opened as favorite, public typically bets away favorite
-  var homeFavoredAtOpen = opening.spread < 0;
-
-  // Sharp side: if line moved toward making the favorite even more of a dog
-  // (i.e. public bet the favorite, sharp faded them, line moved toward underdog)
-  var sharpSide = null;
-  var isRLM = false;
-  var reason = '';
-
-  if (absMoved >= minMove) {
-    if (homeFavoredAtOpen && move > 0) {
-      // Home was favorite, line moved away from home (home getting worse)
-      // Public on home favorite, sharp on away → classic RLM
-      sharpSide = ev.away_team;
-      isRLM = true;
-      reason = 'Public on ' + ev.home_team + ' (opened ' + fmtSpread(opening.spread) + ') — line moved to ' + fmtSpread(current.spread) + ', sharp on ' + ev.away_team;
-    } else if (!homeFavoredAtOpen && move < 0) {
-      // Away was favorite, line moved toward home (away getting worse)
-      // Public on away favorite, sharp on home → RLM
-      sharpSide = ev.home_team;
-      isRLM = true;
-      reason = 'Public on ' + ev.away_team + ' (opened ' + fmtSpread(opening.spread) + ') — line moved to ' + fmtSpread(current.spread) + ', sharp on ' + ev.home_team;
-    } else if (move < 0) {
-      // Home underdog, line moved toward home (home getting better) — sharp on home dog
-      sharpSide = ev.home_team;
-      isRLM = true;
-      reason = 'Line moved ' + Math.abs(move).toFixed(1) + 'pt toward home (' + ev.home_team + ') — possible sharp action on underdog';
-    } else {
-      // Away underdog, line moved toward away — sharp on away dog
-      sharpSide = ev.away_team;
-      isRLM = true;
-      reason = 'Line moved ' + Math.abs(move).toFixed(1) + 'pt toward away (' + ev.away_team + ') — possible sharp action on underdog';
-    }
-  }
-
-  if (!isRLM) {
-    reason = 'Line moved ' + Math.abs(move).toFixed(1) + 'pt — below threshold (' + minMove + 'pt)';
-  }
-
-  // Strength: 1.5pt+ with clear public/sharp split = strong; anything else with movement = moderate
-  var publicSplitConfirmed = (homeFavoredAtOpen && move > 0) || (!homeFavoredAtOpen && move < 0);
-  var strength = !isRLM ? 'watch' : (absMoved >= 1.5 && publicSplitConfirmed) ? 'strong' : 'moderate';
-
-  return {
-    homeTeam: ev.home_team, awayTeam: ev.away_team, commenceTime: ev.commence_time,
-    sport: ev.sportKey, espn_id: ev.espn_id,
-    opening: opening, current: current,
-    move: move, absMoved: absMoved,
-    sharpSide: sharpSide, strength: strength, reason: reason,
-    totalItems: items.length, providerId: movementResult.providerId
-  };
+  var diff=roundHalf(current.spread-base.spread);
+  var absDiff=Math.abs(diff);
+  var sharpSide=null;
+  if(absDiff>=0.5)sharpSide=diff<0?ev.home_team:ev.away_team;
+  var strength='watch';
+  if(absDiff>=2.0)strength='strong';
+  else if(absDiff>=threshold)strength='moderate';
+  var provName={1004:'Consensus',38:'Caesars',1003:'Numberfire',1002:'TeamRankings'}[current.providerId]||('Provider '+current.providerId);
+  var reason=absDiff>=0.5?
+    provName+' · Baseline '+fmtSpread(base.spread)+' \u2192 Current '+fmtSpread(current.spread)+' ('+(diff>0?'+':'')+diff.toFixed(1)+' pts)':
+    provName+' · Baseline '+fmtSpread(base.spread)+' \u2192 Current '+fmtSpread(current.spread)+' · No significant move';
+  return{strength:strength,sharp:sharpSide,diff:diff,baseSpread:base.spread,curSpread:current.spread,isBaseline:false,mlHome:current.mlHome,mlAway:current.mlAway,baseMLHome:base.mlHome,baseMLAway:base.mlAway,providerId:current.providerId,reason:reason};
 }
 
-// ─── RENDER CARD ─────────────────────────────────────────────────────────────
-function renderCard(g, idx, isNew) {
-  var isSH = g.sharpSide === g.homeTeam;
-  var isSA = g.sharpSide === g.awayTeam;
-  var badge = g.strength === 'strong'   ? '&#x1F525; Strong RLM' :
-              g.strength === 'moderate' ? '&#x26A1; Moderate RLM' : '&mdash; Watching';
-  var newBadge = isNew ? '<span class="new-badge">NEW</span>' : '';
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function fmtML(ml){if(ml===null||ml===undefined)return'N/A';return ml>0?'+'+ml:''+ml;}
 
-  var moveClass = g.move > 0 ? 'mv-neg' : g.move < 0 ? 'mv-pos' : '';
-  var moveVal   = g.move !== 0 ? (g.move > 0 ? '+' : '') + g.move.toFixed(1) + 'pt' : '&#x00B10;0';
-  var sharpVal  = g.sharpSide ? g.sharpSide.split(' ').pop().toUpperCase() : '&mdash;';
-  var sharpColor = g.sharpSide ? 'var(--accent)' : 'var(--muted)';
-  var providerLabel = {1004:'Consensus',38:'Caesars',31:'WilliamHill',1002:'TeamRankings'};
-
-  var signalHtml = g.strength !== 'watch' ?
-    '<div class="signal-row">' +
-    '<span style="font-size:14px">&#x1F3AF;</span>' +
-    '<div class="signal-text"><strong>RLM:</strong> ' + g.reason + '</div>' +
-    '<div class="sharp-tag">SHARP &rarr; ' + (g.sharpSide ? g.sharpSide.split(' ').pop() : '?') + '</div>' +
-    '</div>'
-    :
-    '<div class="no-movement">&#x2014; ' + g.reason + '</div>';
-
-  return '<div class="game-card rlm-' + g.strength + (isNew ? ' newly-flagged' : '') + '" style="animation-delay:' + (idx * 0.04) + 's">' +
-    '<div class="card-header">' +
-    '<span class="sport-badge">' + sportLabel(g.sport) + '</span>' +
-    newBadge +
-    '<span class="game-time">' + fmtTime(g.commenceTime) + '</span>' +
-    '<span class="rlm-badge ' + g.strength + '">' + badge + '</span>' +
-    '</div>' +
-    '<div class="card-body">' +
-    '<div class="matchup">' +
-    '<div class="team-row"><span class="team-name' + (isSA ? ' sharp-side' : '') + '">' + g.awayTeam + '</span><span class="spread">' + fmtSpread(g.current.spread !== null ? -g.current.spread : null) + '</span></div>' +
-    '<div class="vs-divider">@ &nbsp;VS</div>' +
-    '<div class="team-row"><span class="team-name' + (isSH ? ' sharp-side' : '') + '">' + g.homeTeam + '</span><span class="spread">' + fmtSpread(g.current.spread) + '</span></div>' +
-    '</div>' +
-    '<div class="metrics">' +
-    '<div class="metric-box"><div class="metric-label">Open</div><div class="metric-value">' + fmtSpread(g.opening.spread) + '</div></div>' +
-    '<div class="metric-box"><div class="metric-label">Current</div><div class="metric-value">' + fmtSpread(g.current.spread) + '</div></div>' +
-    '<div class="metric-box"><div class="metric-label">Move</div><div class="metric-value ' + moveClass + '">' + moveVal + '</div></div>' +
-    '<div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:' + sharpColor + '">' + sharpVal + '</div></div>' +
-    '<div class="metric-box"><div class="metric-label">Source</div><div class="metric-value" style="font-size:12px;color:var(--muted)">' + (providerLabel[g.providerId] || g.providerId) + '</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">' + g.totalItems + ' ticks</div></div>' +
-    '</div>' +
-    '</div>' +
-    signalHtml +
-    '</div>';
+function renderCard(ev,rlm,idx,isNew){
+  var isSH=rlm.sharp===ev.home_team,isSA=rlm.sharp===ev.away_team;
+  var badge=rlm.strength==='strong'?'&#x1F525; Strong RLM':rlm.strength==='moderate'?'&#x26A1; Moderate RLM':'&mdash; No RLM';
+  var newBadge=isNew?'<span class="new-badge">NEW</span>':'';
+  var blBadge=rlm.isBaseline?'<span class="baseline-badge">BASELINE</span>':'';
+  var diffClass=rlm.diff<0?'mv-pos':rlm.diff>0?'mv-neg':'mv-neu';
+  var diffVal=rlm.diff!==0?(rlm.diff>0?'+':'')+rlm.diff.toFixed(1)+'pt':'&#x00B10;0';
+  var sharpVal=rlm.sharp?rlm.sharp.split(' ').pop().toUpperCase():'&mdash;';
+  var sharpColor=rlm.sharp?'var(--accent)':'var(--muted)';
+  var signal=(!rlm.isBaseline&&rlm.strength!=='watch')?
+    '<div class="signal-row"><span style="font-size:14px">&#x1F4C8;</span><div class="signal-text"><strong>MOVE:</strong> '+rlm.reason+'</div>'+(rlm.sharp?'<div class="sharp-tag">SHARP &rarr; '+rlm.sharp.split(' ').pop()+'</div>':'')+'</div>':'';
+  var baselineNote=rlm.isBaseline?
+    '<div class="signal-row"><span style="font-size:13px;color:var(--gold)">&#x1F4CD;</span><div class="signal-text" style="color:var(--gold);">Morning baseline captured at '+fmtSpread(rlm.baseSpread)+'. Movement will be tracked from this line.</div></div>':'';
+  var mlRow='';
+  if(!rlm.isBaseline&&rlm.mlHome!==null&&rlm.mlHome!==undefined){
+    var homeMLStr=fmtML(rlm.baseMLHome)+' \u2192 '+fmtML(rlm.mlHome);
+    var awayMLStr=fmtML(rlm.baseMLAway)+' \u2192 '+fmtML(rlm.mlAway);
+    mlRow='<div class="signal-row" style="background:transparent;"><span style="font-size:11px;color:var(--muted);">ML</span><div class="signal-text" style="font-size:10px;"><strong>'+ev.home_team.split(' ').pop()+'</strong> '+homeMLStr+'&nbsp;&nbsp;&nbsp;<strong>'+ev.away_team.split(' ').pop()+'</strong> '+awayMLStr+'</div></div>';
+  }
+  return '<div class="game-card rlm-'+rlm.strength+(isNew?' newly-flagged':'')+'" style="animation-delay:'+(idx*0.04)+'s">'+
+    '<div class="card-header"><span class="sport-badge">'+sportLabel(ev.sportKey)+'</span>'+newBadge+blBadge+'<span class="game-time">'+fmtTime(ev.commence_time)+'</span><span class="rlm-badge '+rlm.strength+'">'+badge+'</span></div>'+
+    '<div class="card-body">'+
+    '<div class="matchup">'+
+    '<div class="team-row"><span class="team-name'+(isSA?' sharp-side':'')+'">'+ev.away_team+'</span><span class="spread">'+fmtSpread(rlm.curSpread!==null?-rlm.curSpread:null)+'</span></div>'+
+    '<div class="vs-divider">@ &nbsp;VS</div>'+
+    '<div class="team-row"><span class="team-name'+(isSH?' sharp-side':'')+'">'+ev.home_team+'</span><span class="spread">'+fmtSpread(rlm.curSpread)+'</span></div>'+
+    '</div>'+
+    '<div class="metrics">'+
+    '<div class="metric-box"><div class="metric-label">Baseline</div><div class="metric-value" style="color:var(--gold)">'+fmtSpread(rlm.baseSpread)+'</div></div>'+
+    '<div class="metric-box"><div class="metric-label">Current</div><div class="metric-value">'+fmtSpread(rlm.curSpread)+'</div></div>'+
+    '<div class="metric-box"><div class="metric-label">Move</div><div class="metric-value '+diffClass+'">'+diffVal+'</div></div>'+
+    '<div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:'+sharpColor+'">'+sharpVal+'</div></div>'+
+    '</div></div>'+
+    signal+baselineNote+mlRow+'</div>';
 }
 
-function renderNoDataCard(ev, idx) {
-  return '<div class="game-card rlm-watch" style="animation-delay:' + (idx * 0.04) + 's;opacity:0.5;">' +
-    '<div class="card-header">' +
-    '<span class="sport-badge">' + sportLabel(ev.sportKey) + '</span>' +
-    '<span class="game-time">' + fmtTime(ev.commence_time) + '</span>' +
-    '<span class="rlm-badge watch">&#x26A0; No Movement Data</span>' +
-    '</div>' +
-    '<div class="card-body">' +
-    '<div class="matchup">' +
-    '<div class="team-row"><span class="team-name" style="color:var(--muted)">' + ev.away_team + '</span></div>' +
-    '<div class="vs-divider">@ VS</div>' +
-    '<div class="team-row"><span class="team-name" style="color:var(--muted)">' + ev.home_team + '</span></div>' +
-    '</div>' +
-    '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;flex:1;">ESPN movement endpoint returned no data for any provider. Line may not be posted yet.</div>' +
-    '</div></div>';
+function renderNoDataCard(ev,idx){
+  return '<div class="game-card rlm-watch" style="animation-delay:'+(idx*0.04)+'s;opacity:0.5;">'+
+    '<div class="card-header"><span class="sport-badge">'+sportLabel(ev.sportKey)+'</span><span class="game-time">'+fmtTime(ev.commence_time)+'</span><span class="rlm-badge watch">&#x26A0; No Data</span></div>'+
+    '<div class="card-body"><div class="matchup"><div class="team-row"><span class="team-name" style="color:var(--muted)">'+ev.away_team+'</span></div><div class="vs-divider">@ VS</div><div class="team-row"><span class="team-name" style="color:var(--muted)">'+ev.home_team+'</span></div></div>'+
+    '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;flex:1;">ESPN line data not available &mdash; lines may not be posted yet.</div></div></div>';
 }
 
 // ─── PUSHOVER ────────────────────────────────────────────────────────────────
-async function sendPushover(title, msg, priority) {
-  if (priority === undefined) priority = 0;
-  var token = document.getElementById('poAppToken').value.trim();
-  var user  = document.getElementById('poUserKey').value.trim();
-  if (!token || !user) return {ok:false, reason:'Keys not set'};
-  try {
-    var fd = new FormData();
-    fd.append('token', token); fd.append('user', user);
-    fd.append('title', title); fd.append('message', msg);
-    fd.append('priority', priority);
-    if (priority >= 2) { fd.append('retry','60'); fd.append('expire','3600'); }
-    var r = await fetch('https://api.pushover.net/1/messages.json', {method:'POST', body:fd});
-    var d = await r.json();
-    return {ok: d.status === 1, reason: (d.errors||[]).join(', ')};
-  } catch(e) { return {ok:false, reason:e.message}; }
+async function sendPushover(title,msg,priority){
+  if(priority===undefined)priority=0;
+  var token=document.getElementById('poAppToken').value.trim();
+  var user=document.getElementById('poUserKey').value.trim();
+  if(!token||!user)return{ok:false,reason:'Keys not set'};
+  try{
+    var fd=new FormData();
+    fd.append('token',token);fd.append('user',user);fd.append('title',title);fd.append('message',msg);fd.append('priority',priority);
+    if(priority>=2){fd.append('retry','60');fd.append('expire','3600');}
+    var r=await fetch('https://api.pushover.net/1/messages.json',{method:'POST',body:fd});
+    var d=await r.json();
+    return{ok:d.status===1,reason:(d.errors||[]).join(', ')};
+  }catch(e){return{ok:false,reason:e.message};}
 }
 
-async function testPushover() {
-  var chip = document.getElementById('poChip');
-  chip.textContent = 'Sending...'; chip.className = 'po-chip off';
-  var r = await sendPushover('RLM Detector', 'Connected! ESPN line movement alerts active.', 0);
-  chip.textContent = r.ok ? 'Connected' : 'Failed';
-  chip.className = r.ok ? 'po-chip ok' : 'po-chip off';
-  addLog(r.ok ? 'Pushover test sent.' : 'Pushover failed: ' + r.reason, r.ok ? 'sent' : 'fail');
+async function testPushover(){
+  var chip=document.getElementById('poChip');
+  chip.textContent='Sending...';chip.className='po-chip off';
+  var r=await sendPushover('RLM Detector v5','Baseline tracking ready. Morning scan locks your opening lines.',0);
+  chip.textContent=r.ok?'Connected':'Failed';
+  chip.className=r.ok?'po-chip ok':'po-chip off';
+  addLog(r.ok?'Pushover test sent.':'Pushover test failed: '+r.reason,r.ok?'sent':'fail');
 }
 
-// ─── STEP 3: SCAN ─────────────────────────────────────────────────────────────
-async function runScan(isAuto) {
-  if (isAuto === undefined) isAuto = false;
-  var minMove    = parseFloat(document.getElementById('minMove').value) || 1.0;
-  var alertLevels = [];
-  document.querySelectorAll('.pill[data-alert].active').forEach(function(p) { alertLevels.push(p.dataset.alert); });
-
-  if (watchlist.size === 0) { setStatus('No games selected. Use Step 2 to select games first.', 'error'); return; }
-
-  var watchlistEvents = allFetchedGames.filter(function(ev) {
-    return watchlist.has(gameKey(ev));
-  });
-
-  if (!watchlistEvents.length) {
-    setStatus('Watchlist games not found. Click Load Games to refresh.', 'error');
-    return;
-  }
-
-  setStatus((isAuto ? '[Auto] ' : '') + 'Scanning ' + watchlistEvents.length + ' game(s) via ESPN...', 'loading');
-
-  var analyzed  = [];
-  var noData    = [];
-  var errs      = [];
-
-  for (var i = 0; i < watchlistEvents.length; i++) {
-    var ev = watchlistEvents[i];
-    try {
-      var movResult = await fetchLineMovement(ev);
-      if (movResult) {
-        var result = analyzeRLM(ev, movResult, minMove);
-        analyzed.push(result);
-      } else {
+// ─── SCAN ─────────────────────────────────────────────────────────────────────
+async function runScan(isAuto){
+  if(isAuto===undefined)isAuto=false;
+  var threshold=parseFloat(document.getElementById('rlmThreshold').value)||1.5;
+  var alertLevels=[];
+  document.querySelectorAll('.pill[data-alert].active').forEach(function(p){alertLevels.push(p.dataset.alert);});
+  if(watchlist.size===0){setStatus('No games selected. Use Step 2 first.','error');return;}
+  var watchlistEvents=allFetchedGames.filter(function(ev){return watchlist.has(ev.espn_id);});
+  if(!watchlistEvents.length){setStatus('Watchlist games not found. Reload games.','error');return;}
+  var isFirstScan=!baselineLocked;
+  setStatus((isAuto?'[Auto] ':'')+(isFirstScan?'Locking morning baseline for ':'Scanning ')+watchlistEvents.length+' game(s)...','loading');
+  if(!isAuto){document.getElementById('results').innerHTML='';document.getElementById('summaryBar').style.display='none';}
+  var results=[],noData=[];
+  var newBaselineEntries=0;
+  for(var i=0;i<watchlistEvents.length;i++){
+    var ev=watchlistEvents[i];
+    setStatus((isAuto?'[Auto] ':'')+'Checking '+ev.away_team+' @ '+ev.home_team+'...','loading');
+    try{
+      var current=await fetchCurrentLine(ev);
+      if(current){
+        // Lock baseline on first successful data for this game
+        if(!baseline[ev.espn_id]){
+          baseline[ev.espn_id]={spread:current.spread,mlHome:current.mlHome,mlAway:current.mlAway,ts:Date.now()};
+          newBaselineEntries++;
+        }
+        var rlm=analyzeRLM(ev,current,threshold);
+        results.push({ev:ev,rlm:rlm});
+      }else{
         noData.push(ev);
       }
-    } catch(e) {
-      errs.push(ev.away_team + ' @ ' + ev.home_team + ': ' + e.message);
-      noData.push(ev);
-    }
-    // Small delay to avoid hammering ESPN
-    if (i < watchlistEvents.length - 1) await new Promise(function(r){setTimeout(r, 150);});
+    }catch(e){addLog('Error: '+ev.away_team+' @ '+ev.home_team+': '+e.message,'fail');noData.push(ev);}
+    if(i<watchlistEvents.length-1)await new Promise(function(r){setTimeout(r,200);});
   }
 
-  // Sort: strong → moderate → watch
-  analyzed.sort(function(a,b) {
-    var o = {strong:0,moderate:1,watch:2};
-    return o[a.strength] - o[b.strength];
+  // Save baseline if we got new entries
+  if(newBaselineEntries>0){
+    baselineLocked=true;
+    baselineDate=document.getElementById('scanDate').value;
+    saveBaseline();
+    updateBaselineUI();
+    addLog('Baseline locked — '+Object.keys(baseline).length+' game(s) captured at '+nowStr(),'sent');
+  }
+
+  results.sort(function(a,b){var o={strong:0,moderate:1,watch:2};return o[a.rlm.strength]-o[b.rlm.strength];});
+
+  var newOnes=[];
+  results.forEach(function(item){
+    if(item.rlm.isBaseline)return; // never alert on baseline scan
+    var id=item.ev.espn_id+'_'+item.rlm.strength;
+    if(item.rlm.strength!=='watch'&&alertLevels.indexOf(item.rlm.strength)!==-1&&!previousRLMs.has(id)){newOnes.push(item);previousRLMs.add(id);}
   });
 
-  // Find new RLMs and send Pushover
-  var newOnes = [];
-  analyzed.forEach(function(g) {
-    var id = g.homeTeam + '||' + g.awayTeam;
-    if (g.strength !== 'watch' && alertLevels.indexOf(g.strength) !== -1 && !previousRLMs.has(id)) {
-      newOnes.push(g); previousRLMs.add(id);
-    }
-  });
-
-  for (var ni = 0; ni < newOnes.length; ni++) {
-    var g = newOnes[ni];
-    var priority = g.strength === 'strong' ? 1 : 0;
-    var title = g.strength === 'strong' ? '🔥 Strong RLM' : '⚡ Moderate RLM';
-    var sharpName = g.sharpSide ? g.sharpSide.split(' ').pop() : '?';
-    var msg = g.awayTeam + ' @ ' + g.homeTeam +
-              '\nOpen: ' + fmtSpread(g.opening.spread) + ' → Current: ' + fmtSpread(g.current.spread) +
-              ' (' + (g.move > 0 ? '+' : '') + g.move.toFixed(1) + 'pt)' +
-              '\nSharp side: ' + sharpName +
-              '\n' + g.reason;
-    var pr = await sendPushover(title, msg, priority);
-    addLog((pr.ok ? 'Sent' : 'Failed') + ' — ' + g.awayTeam + ' @ ' + g.homeTeam + ' (' + g.strength + ')' + (!pr.ok ? ': ' + pr.reason : ''), pr.ok ? 'sent' : 'fail');
+  for(var ni=0;ni<newOnes.length;ni++){
+    var item=newOnes[ni];
+    var priority=item.rlm.strength==='strong'?1:0;
+    var title=item.rlm.strength==='strong'?'Strong RLM':'Moderate RLM';
+    var sharpName=item.rlm.sharp?item.rlm.sharp.split(' ').pop():'?';
+    var msg=item.ev.away_team+' @ '+item.ev.home_team+'\nSharp: '+sharpName+' | Move: '+(item.rlm.diff>0?'+':'')+item.rlm.diff.toFixed(1)+'pt\n'+item.rlm.reason;
+    var pr=await sendPushover(title,msg,priority);
+    addLog((pr.ok?'Sent':'Failed')+' \u2014 '+item.ev.away_team+' @ '+item.ev.home_team+' ('+item.rlm.strength+')'+(pr.ok?'':': '+pr.reason),pr.ok?'sent':'fail');
   }
 
-  var strong   = analyzed.filter(function(g){return g.strength==='strong';}).length;
-  var moderate = analyzed.filter(function(g){return g.strength==='moderate';}).length;
+  var strong=results.filter(function(x){return x.rlm.strength==='strong';}).length;
+  var moderate=results.filter(function(x){return x.rlm.strength==='moderate';}).length;
+  document.getElementById('sumStrong').textContent=strong;
+  document.getElementById('sumModerate').textContent=moderate;
+  document.getElementById('sumTotal').textContent=watchlistEvents.length;
+  document.getElementById('summaryBar').style.display='flex';
+  document.getElementById('lastScanInfo').innerHTML='Last scan: '+nowStr()+'<br>'+results.length+' with data &middot; '+noData.length+' no data';
 
-  document.getElementById('sumStrong').textContent   = strong;
-  document.getElementById('sumModerate').textContent = moderate;
-  document.getElementById('sumTotal').textContent    = watchlistEvents.length;
-  document.getElementById('summaryBar').style.display = 'flex';
-  document.getElementById('lastScanInfo').innerHTML  =
-    'Last scan: ' + nowStr() + '<br>' + analyzed.length + ' with data · ' + noData.length + ' no data';
-
-  var html = analyzed.map(function(g,i){ return renderCard(g, i, newOnes.indexOf(g) !== -1); }).join('');
-  if (noData.length) {
-    html += '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;padding:12px 0 8px;border-top:1px solid var(--border);margin-top:8px;">&#x26A0; ' + noData.length + ' game(s) — no movement data</div>';
-    html += noData.map(function(ev,i){ return renderNoDataCard(ev, analyzed.length+i); }).join('');
+  var html=results.map(function(item,i){return renderCard(item.ev,item.rlm,i,newOnes.indexOf(item)!==-1);}).join('');
+  if(noData.length){
+    html+='<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;padding:12px 0 8px;border-top:1px solid var(--border);margin-top:8px;">&#x26A0; '+noData.length+' game(s) \u2014 no ESPN line data yet</div>';
+    html+=noData.map(function(ev,i){return renderNoDataCard(ev,results.length+i);}).join('');
   }
-  document.getElementById('results').innerHTML = html || '<div class="empty-state"><span class="big">NO DATA</span>ESPN returned no line movement for selected games.</div>';
+  if(!html)html='<div class="empty-state"><span class="big">NO DATA</span>ESPN has not posted lines for these games yet. Try again closer to 10-11am.</div>';
+  document.getElementById('results').innerHTML=html;
 
-  var prefix  = isAuto ? '[Auto] ' : '';
-  var newNote = newOnes.length ? ' · ' + newOnes.length + ' alert(s) sent' : '';
-  var errNote = errs.length ? ' · ' + errs.length + ' error(s)' : '';
-  setStatus(prefix + 'Scan complete — ' + strong + ' strong · ' + moderate + ' moderate · ' + noData.length + ' no data' + newNote + errNote, '');
-
+  var baseNote=isFirstScan&&newBaselineEntries>0?' \u00b7 baseline locked':'';
+  var newNote=newOnes.length?' \u00b7 '+newOnes.length+' alert(s) sent':'';
+  setStatus((isAuto?'[Auto] ':'')+'Scan complete \u2014 '+results.length+' games \u00b7 '+strong+' strong \u00b7 '+moderate+' moderate'+baseNote+newNote,'');
   scanCount++;
-  document.getElementById('scanCountEl').textContent = scanCount;
-  document.getElementById('lastScanEl').textContent  = nowStr();
+  document.getElementById('scanCountEl').textContent=scanCount;
+  document.getElementById('lastScanEl').textContent=nowStr();
 }
 
 // ─── AUTO SCAN ────────────────────────────────────────────────────────────────
-function startAutoScan() {
-  if (watchlist.size === 0) { setStatus('Select games first (Step 2).', 'error'); return; }
-  var mins = parseInt(document.getElementById('scanInterval').value) || 15;
-  var ms   = mins * 60 * 1000;
-  document.getElementById('startBtn').style.display = 'none';
-  document.getElementById('stopBtn').style.display  = '';
+function startAutoScan(){
+  if(watchlist.size===0){setStatus('Select games first (Step 2).','error');return;}
+  var mins=parseInt(document.getElementById('scanInterval').value)||15;
+  var ms=mins*60*1000;
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('stopBtn').style.display='';
   document.getElementById('autoscanBar').classList.add('active');
   runScan(true);
-  nextScanAt = Date.now() + ms;
-  autoTimer      = setInterval(function(){ runScan(true); nextScanAt = Date.now() + ms; }, ms);
-  countdownTimer = setInterval(tickCountdown, 1000);
-  addLog('Auto-scan started — every ' + mins + ' min.');
+  nextScanAt=Date.now()+ms;
+  autoTimer=setInterval(function(){runScan(true);nextScanAt=Date.now()+ms;},ms);
+  countdownTimer=setInterval(tickCountdown,1000);
+  addLog('Auto-scan started \u2014 every '+mins+' min.');
 }
 
-function stopAutoScan() {
-  clearInterval(autoTimer); clearInterval(countdownTimer);
-  autoTimer = null; countdownTimer = null; nextScanAt = null;
-  document.getElementById('startBtn').style.display = '';
-  document.getElementById('stopBtn').style.display  = 'none';
+function stopAutoScan(){
+  clearInterval(autoTimer);clearInterval(countdownTimer);
+  autoTimer=null;countdownTimer=null;nextScanAt=null;
+  document.getElementById('startBtn').style.display='';
+  document.getElementById('stopBtn').style.display='none';
   document.getElementById('autoscanBar').classList.remove('active');
-  document.getElementById('countdownEl').textContent = '—';
+  document.getElementById('countdownEl').textContent='\u2014';
   addLog('Auto-scan stopped.');
 }
 
-function tickCountdown() {
-  if (!nextScanAt) return;
-  var d = Math.max(0, nextScanAt - Date.now());
-  var m = Math.floor(d/60000), s = Math.floor((d%60000)/1000);
-  document.getElementById('countdownEl').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+function tickCountdown(){
+  if(!nextScanAt)return;
+  var d=Math.max(0,nextScanAt-Date.now());
+  var m=Math.floor(d/60000),s=Math.floor((d%60000)/1000);
+  document.getElementById('countdownEl').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
 }
 
-// ─── GAME PICKER ──────────────────────────────────────────────────────────────
-function openPicker() {
-  pickerTemp = new Set(watchlist);
-  renderPicker();
-  document.getElementById('pickerModal').classList.add('open');
-}
-function closePicker() { document.getElementById('pickerModal').classList.remove('open'); }
+// ─── PICKER ───────────────────────────────────────────────────────────────────
+function openPicker(){pickerTemp=new Set(watchlist);renderPicker();document.getElementById('pickerModal').classList.add('open');}
+function closePicker(){document.getElementById('pickerModal').classList.remove('open');}
 
-function renderPicker() {
-  var body = document.getElementById('pickerBody');
-  if (!allFetchedGames.length) { body.innerHTML = '<div class="picker-loading">No games loaded.</div>'; return; }
-  var bySport = {};
-  allFetchedGames.forEach(function(g) {
-    if (!bySport[g.sportKey]) bySport[g.sportKey] = [];
-    bySport[g.sportKey].push(g);
-  });
-  var html = '<div class="picker-controls"><button class="picker-ctrl-btn" onclick="pickerAll()">Select All</button><button class="picker-ctrl-btn" onclick="pickerNone()">Clear All</button></div>';
-  Object.keys(bySport).forEach(function(sport) {
-    html += '<div class="picker-sport-header">' + sportLabel(sport) + ' — ' + bySport[sport].length + ' game(s)</div>';
-    bySport[sport].forEach(function(g) {
-      var id  = gameKey(g);
-      var sel = pickerTemp.has(id);
-      html += '<div class="picker-game' + (sel?' selected':'') + '" onclick="togglePick(\'' + id.replace(/'/g,"\\'") + '\',this)">' +
-        '<input type="checkbox"' + (sel?' checked':'') + ' onclick="event.stopPropagation();togglePick(\'' + id.replace(/'/g,"\\'") + '\',this.closest(\'.picker-game\'))">' +
-        '<span class="picker-game-name">' + g.away_team + ' @ ' + g.home_team + '</span>' +
-        '<span class="picker-game-time">' + fmtTime(g.commence_time) + '</span>' +
-        '</div>';
+function renderPicker(){
+  var body=document.getElementById('pickerBody');
+  if(!allFetchedGames.length){body.innerHTML='<div class="picker-loading">Load games first.</div>';return;}
+  var bySport={};
+  allFetchedGames.forEach(function(g){if(!bySport[g.sportKey])bySport[g.sportKey]=[];bySport[g.sportKey].push(g);});
+  var html='<div class="picker-controls"><button class="picker-ctrl-btn" onclick="pickerAll()">Select All</button><button class="picker-ctrl-btn" onclick="pickerNone()">Clear All</button></div>';
+  Object.keys(bySport).forEach(function(sport){
+    html+='<div class="picker-sport-header">'+sportLabel(sport)+' \u2014 '+bySport[sport].length+' game(s)</div>';
+    bySport[sport].forEach(function(g){
+      var sel=pickerTemp.has(g.espn_id);
+      var safeId=g.espn_id.replace(/'/g,"\\'");
+      html+='<div class="picker-game'+(sel?' selected':'')+'" onclick="togglePick(\''+safeId+'\',this)">'+
+        '<input type="checkbox"'+(sel?' checked':'')+' onclick="event.stopPropagation();togglePick(\''+safeId+'\',this.closest(\'.picker-game\'))">'+
+        '<span class="picker-game-name">'+g.away_team+' @ '+g.home_team+'</span>'+
+        '<span class="picker-game-time">'+fmtTime(g.commence_time)+'</span></div>';
     });
   });
-  body.innerHTML = html;
-  updatePickerSub();
+  body.innerHTML=html;updatePickerSub();
 }
 
-function togglePick(id, el) {
-  if (pickerTemp.has(id)) { pickerTemp.delete(id); el.classList.remove('selected'); el.querySelector('input').checked = false; }
-  else { pickerTemp.add(id); el.classList.add('selected'); el.querySelector('input').checked = true; }
+function togglePick(id,el){
+  if(pickerTemp.has(id)){pickerTemp.delete(id);el.classList.remove('selected');el.querySelector('input').checked=false;}
+  else{pickerTemp.add(id);el.classList.add('selected');el.querySelector('input').checked=true;}
   updatePickerSub();
 }
-function pickerAll()  { allFetchedGames.forEach(function(g){ pickerTemp.add(gameKey(g)); }); renderPicker(); }
-function pickerNone() { pickerTemp.clear(); renderPicker(); }
-function updatePickerSub() {
-  document.getElementById('pickerSubtitle').textContent = pickerTemp.size === 0 ? 'No games selected' : pickerTemp.size + ' game(s) selected';
-}
+function pickerAll(){allFetchedGames.forEach(function(g){pickerTemp.add(g.espn_id);});renderPicker();}
+function pickerNone(){pickerTemp.clear();renderPicker();}
+function updatePickerSub(){document.getElementById('pickerSubtitle').textContent=pickerTemp.size===0?'No games selected':pickerTemp.size+' game(s) selected';}
 
-function saveWatchlist() {
-  watchlist = new Set(pickerTemp);
-  previousRLMs.clear();
-  closePicker();
-  var chip  = document.getElementById('watchlistChip');
-  var start = document.getElementById('startBtn');
-  if (watchlist.size > 0) {
-    document.getElementById('pickBtn').textContent = 'Games Selected';
-    document.getElementById('pickBtn').style.color = 'var(--gold)';
-    document.getElementById('pickBtn').style.borderColor = 'var(--gold)';
-    chip.textContent = watchlist.size + ' game' + (watchlist.size > 1 ? 's' : '') + ' selected';
-    chip.style.display = '';
-    start.disabled = false;
-    document.getElementById('badge2').className = 'step-badge done-2';
-    document.getElementById('badge3').className = 'step-badge done-3';
-    setStatus(watchlist.size + ' game(s) selected. Click Start Auto-Scan to begin.', '');
-    addLog('Watchlist saved — ' + watchlist.size + ' game(s).');
-  } else {
-    document.getElementById('pickBtn').textContent = 'Select Games';
-    document.getElementById('pickBtn').style.color = '';
-    document.getElementById('pickBtn').style.borderColor = '';
-    chip.style.display = 'none';
-    start.disabled = true;
-    document.getElementById('badge2').className = 'step-badge';
-    document.getElementById('badge3').className = 'step-badge';
-    setStatus('No games selected.', '');
+function saveWatchlist(){
+  watchlist=new Set(pickerTemp);closePicker();
+  var chip=document.getElementById('watchlistChip'),start=document.getElementById('startBtn');
+  if(watchlist.size>0){
+    document.getElementById('pickBtn').textContent='Games Selected';
+    document.getElementById('pickBtn').style.color='var(--gold)';
+    document.getElementById('pickBtn').style.borderColor='var(--gold)';
+    chip.textContent=watchlist.size+' game'+(watchlist.size>1?'s':'')+' selected';chip.style.display='';
+    start.disabled=false;
+    document.getElementById('badge2').className='step-badge done-2';
+    document.getElementById('badge3').className='step-badge done-3';
+    setStatus(watchlist.size+' game(s) selected. Click Start Auto-Scan.','');
+    addLog('Watchlist saved \u2014 '+watchlist.size+' game(s).');
+  }else{
+    document.getElementById('pickBtn').textContent='Select Games';
+    document.getElementById('pickBtn').style.color='';document.getElementById('pickBtn').style.borderColor='';
+    chip.style.display='none';start.disabled=true;
+    document.getElementById('badge2').className='step-badge';document.getElementById('badge3').className='step-badge';
+    setStatus('No games selected.','');
   }
   saveSettings();
 }
 
 // ─── PERSISTENCE ──────────────────────────────────────────────────────────────
-var STORAGE_KEY = 'rlmdetector_v5';
-
-function saveSettings() {
-  try {
-    var activeSports = [], alertLevels = [];
-    document.querySelectorAll('.pill[data-sport].active').forEach(function(p){ activeSports.push(p.dataset.sport); });
-    document.querySelectorAll('.pill[data-alert].active').forEach(function(p){ alertLevels.push(p.dataset.alert); });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      poUserKey:    document.getElementById('poUserKey').value,
-      poAppToken:   document.getElementById('poAppToken').value,
-      scanInterval: document.getElementById('scanInterval').value,
-      minMove:      document.getElementById('minMove').value,
-      scanDate:     document.getElementById('scanDate').value,
-      activeSports: activeSports,
-      alertLevels:  alertLevels
-    }));
-  } catch(e) {}
+function saveSettings(){
+  try{
+    var activeSports=[],alertLevels=[];
+    document.querySelectorAll('.pill[data-sport].active').forEach(function(p){activeSports.push(p.dataset.sport);});
+    document.querySelectorAll('.pill[data-alert].active').forEach(function(p){alertLevels.push(p.dataset.alert);});
+    localStorage.setItem(STORAGE_KEY,JSON.stringify({poUserKey:document.getElementById('poUserKey').value,poAppToken:document.getElementById('poAppToken').value,scanInterval:document.getElementById('scanInterval').value,rlmThreshold:document.getElementById('rlmThreshold').value,scanDate:document.getElementById('scanDate').value,activeSports:activeSports,alertLevels:alertLevels}));
+  }catch(e){}
+}
+function loadSettings(){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;
+    var s=JSON.parse(raw);
+    if(s.poUserKey)document.getElementById('poUserKey').value=s.poUserKey;
+    if(s.poAppToken)document.getElementById('poAppToken').value=s.poAppToken;
+    if(s.scanInterval)document.getElementById('scanInterval').value=s.scanInterval;
+    if(s.rlmThreshold)document.getElementById('rlmThreshold').value=s.rlmThreshold;
+    if(s.scanDate)document.getElementById('scanDate').value=s.scanDate;
+    if(s.activeSports)document.querySelectorAll('.pill[data-sport]').forEach(function(p){p.classList.toggle('active',s.activeSports.indexOf(p.dataset.sport)!==-1);});
+    if(s.alertLevels)document.querySelectorAll('.pill[data-alert]').forEach(function(p){p.classList.toggle('active',s.alertLevels.indexOf(p.dataset.alert)!==-1);});
+    if(s.poUserKey||s.poAppToken)setStatus('Settings restored. Click Load Games to begin.','');
+  }catch(e){}
+}
+function clearSettings(){
+  if(!confirm('Clear all saved settings and baseline?'))return;
+  try{localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(BASELINE_KEY);}catch(e){}
+  document.getElementById('poUserKey').value='';document.getElementById('poAppToken').value='';
+  document.getElementById('scanInterval').value='15';document.getElementById('rlmThreshold').value='1.5';
+  document.getElementById('poChip').textContent='Not configured';document.getElementById('poChip').className='po-chip off';
+  baseline={};baselineLocked=false;
+  document.getElementById('baselineBar').classList.remove('active');
+  document.getElementById('resetBaselineBtn').style.display='none';
+  addLog('Settings and baseline cleared.');
 }
 
-function loadSettings() {
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    var s = JSON.parse(raw);
-    if (s.poUserKey)    document.getElementById('poUserKey').value    = s.poUserKey;
-    if (s.poAppToken)   document.getElementById('poAppToken').value   = s.poAppToken;
-    if (s.scanInterval) document.getElementById('scanInterval').value = s.scanInterval;
-    if (s.minMove)      document.getElementById('minMove').value      = s.minMove;
-    if (s.scanDate)     document.getElementById('scanDate').value     = s.scanDate;
-    if (s.activeSports) document.querySelectorAll('.pill[data-sport]').forEach(function(p){ p.classList.toggle('active', s.activeSports.indexOf(p.dataset.sport) !== -1); });
-    if (s.alertLevels)  document.querySelectorAll('.pill[data-alert]').forEach(function(p){ p.classList.toggle('active', s.alertLevels.indexOf(p.dataset.alert)  !== -1); });
-    if (s.poUserKey || s.poAppToken) setStatus('Settings restored.', '');
-  } catch(e) {}
-}
-
-function clearSettings() {
-  if (!confirm('Clear all saved settings?')) return;
-  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-  document.getElementById('poUserKey').value    = '';
-  document.getElementById('poAppToken').value   = '';
-  document.getElementById('scanInterval').value = '15';
-  document.getElementById('minMove').value      = '1.0';
-  document.getElementById('poChip').textContent = 'Not configured';
-  document.getElementById('poChip').className   = 'po-chip off';
-  addLog('Settings cleared.');
-}
-
-['poUserKey','poAppToken','scanInterval','minMove','scanDate'].forEach(function(id){
-  document.getElementById(id).addEventListener('input', saveSettings);
-});
-document.querySelectorAll('.pill').forEach(function(p){
-  p.addEventListener('click', function(){ setTimeout(saveSettings, 50); });
-});
-document.getElementById('pickerModal').addEventListener('click', function(e){
-  if (e.target === document.getElementById('pickerModal')) closePicker();
-});
+['poUserKey','poAppToken','scanInterval','rlmThreshold','scanDate'].forEach(function(id){document.getElementById(id).addEventListener('input',saveSettings);});
+document.querySelectorAll('.pill').forEach(function(p){p.addEventListener('click',function(){setTimeout(saveSettings,50);});});
+document.getElementById('pickerModal').addEventListener('click',function(e){if(e.target===document.getElementById('pickerModal'))closePicker();});
 
 loadSettings();
+loadBaseline();
 </script>
 
 </body>
