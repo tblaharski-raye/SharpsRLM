@@ -154,7 +154,7 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(--border);font-fa
 <header>
   <div class="logo-eyebrow">// sharp money scanner v5 &mdash; baseline tracking</div>
   <div class="logo">RLM<span>.</span>DETECT</div>
-  <div class="logo-sub">morning baseline lock &middot; true line movement &middot; ESPN free data &middot; pushover alerts</div>
+  <div class="logo-sub">morning baseline lock &middot; DraftKings lines &middot; ESPN schedule &middot; pushover alerts</div>
 </header>
 <div class="section-label">Configuration</div>
 <div class="config-panel">
@@ -275,7 +275,7 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(--border);font-fa
   </div>
 </div>
 
-<footer>RLM.DETECT v5 &mdash; ESPN line movement &middot; Baseline tracking &middot; Pushover &middot; Not financial advice</footer>
+<footer>RLM.DETECT v5 &mdash; DraftKings lines &middot; ESPN schedule &middot; Baseline tracking &middot; Pushover &middot; Not financial advice</footer>
 
 <script>
 var autoTimer=null,countdownTimer=null,nextScanAt=null,scanCount=0;
@@ -284,8 +284,11 @@ var previousRLMs=new Set(),allFetchedGames=[],watchlist=new Set(),pickerTemp=new
 var baseline={};
 var baselineLocked=false;
 var baselineDate='';
-var PROVIDERS=[1004,38,1003,1002];
 var ESPN_PATHS={nfl:'football/nfl',nba:'basketball/nba',mlb:'baseball/mlb',nhl:'hockey/nhl',ncaaf:'football/college-football',ncaab:'basketball/mens-college-basketball'};
+// DraftKings event group IDs by sport
+var DK_GROUPS={nfl:'88808',nba:'42648',mlb:'84240',nhl:'42133',ncaaf:'88807',ncaab:'92483'};
+var DK_BASE='https://sportsbook.draftkings.com/sites/US-SB/api/v5/eventgroups/';
+var dkCache={};
 var STORAGE_KEY='rlmdetector_v5';
 var BASELINE_KEY='rlmbaseline_v5';
 
@@ -403,106 +406,145 @@ async function loadGames(){
   addLog('ESPN loaded '+allEvents.length+' games.'+(loadErrors.length?' Errors: '+loadErrors.join(', '):''));
 }
 
-// ─── LINE MOVEMENT ────────────────────────────────────────────────────────────
-// Extract spread from any ESPN odds item — field names vary by provider/endpoint
-function extractSpread(item){
-  if(!item)return null;
-  if(item.spread!==undefined&&item.spread!==null)return item.spread;
-  if(item.line!==undefined&&item.line!==null)return item.line;
-  if(item.pointSpread!==undefined&&item.pointSpread!==null)return item.pointSpread;
-  if(item.homeTeamOdds){
-    if(item.homeTeamOdds.spreadOdds!==undefined)return item.homeTeamOdds.spreadOdds;
-    if(item.homeTeamOdds.spread!==undefined)return item.homeTeamOdds.spread;
-    if(item.homeTeamOdds.pointSpread!==undefined)return item.homeTeamOdds.pointSpread;
-  }
-  return null;
+// ─── DRAFTKINGS LINE FETCHING ─────────────────────────────────────────────────
+// Normalize team name for fuzzy matching against DK team names
+function normTeam(name){
+  if(!name)return'';
+  return name.toLowerCase()
+    .replace(/\./g,'')
+    .replace(/\s+/g,' ')
+    .trim();
 }
-function extractHomeML(item){
-  if(!item)return null;
-  if(item.homeOdds!==undefined)return item.homeOdds;
-  if(item.homeTeamOdds&&item.homeTeamOdds.moneyLine!==undefined)return item.homeTeamOdds.moneyLine;
-  if(item.homeTeamOdds&&item.homeTeamOdds.odds!==undefined)return item.homeTeamOdds.odds;
-  return null;
+
+// Check if two team names refer to the same team
+function teamMatch(espnName, dkName){
+  var a=normTeam(espnName), b=normTeam(dkName);
+  if(a===b)return true;
+  // Last word (nickname) match
+  var aLast=a.split(' ').pop(), bLast=b.split(' ').pop();
+  if(aLast.length>3&&aLast===bLast)return true;
+  // Contains
+  if(aLast.length>3&&b.indexOf(aLast)!==-1)return true;
+  if(bLast.length>3&&a.indexOf(bLast)!==-1)return true;
+  return false;
 }
-function extractAwayML(item){
-  if(!item)return null;
-  if(item.awayOdds!==undefined)return item.awayOdds;
-  if(item.awayTeamOdds&&item.awayTeamOdds.moneyLine!==undefined)return item.awayTeamOdds.moneyLine;
-  if(item.awayTeamOdds&&item.awayTeamOdds.odds!==undefined)return item.awayTeamOdds.odds;
-  return null;
+
+// Fetch ALL lines for a sport from DraftKings in one call, cache per scan cycle
+async function fetchDKSport(sportKey){
+  if(dkCache[sportKey])return dkCache[sportKey];
+  var groupId=DK_GROUPS[sportKey];
+  if(!groupId)return null;
+  var url=DK_BASE+groupId+'?format=json';
+  try{
+    var resp=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0','Accept':'application/json'}});
+    if(!resp.ok){addLog('DK fetch failed for '+sportKey+': HTTP '+resp.status,'fail');return null;}
+    var data=await resp.json();
+    dkCache[sportKey]=data;
+    return data;
+  }catch(e){addLog('DK fetch error for '+sportKey+': '+e.message,'fail');return null;}
 }
-function extractOpenSpread(item){
-  if(!item)return null;
-  // ESPN stores opening line in these fields
-  if(item.open){
-    var s=extractSpread(item.open);
-    if(s!==null)return s;
-  }
-  if(item.openingLine!==undefined&&item.openingLine!==null)return item.openingLine;
-  if(item.spread!==undefined&&item.spread!==null){
-    // Some providers use a separate openSpread field
-    if(item.openSpread!==undefined&&item.openSpread!==null)return item.openSpread;
-  }
+
+// Extract spread + ML for a specific game from DraftKings data
+function parseDKGame(dkData, espnGame){
+  if(!dkData)return null;
+  try{
+    var eg=dkData.eventGroup;
+    if(!eg)return null;
+
+    // Navigate to offers: offerCategories[0] = Game Lines, offerSubcategoryDescriptors[0] = main markets
+    var cats=eg.offerCategories||[];
+    var mainCat=null;
+    for(var ci=0;ci<cats.length;ci++){
+      var c=cats[ci];
+      if(c.name&&(c.name.toLowerCase().indexOf('game')!==-1||c.name.toLowerCase().indexOf('main')!==-1)){
+        mainCat=c;break;
+      }
+    }
+    if(!mainCat)mainCat=cats[0];
+    if(!mainCat)return null;
+
+    var subDescs=mainCat.offerSubcategoryDescriptors||[];
+    var mainSub=null;
+    for(var si=0;si<subDescs.length;si++){
+      var sd=subDescs[si];
+      if(sd.name&&(sd.name.toLowerCase()==='game'||sd.name.toLowerCase().indexOf('full game')!==-1||sd.name.toLowerCase().indexOf('main')!==-1)){
+        mainSub=sd;break;
+      }
+    }
+    if(!mainSub)mainSub=subDescs[0];
+    if(!mainSub||!mainSub.offerSubcategory)return null;
+
+    var offers=mainSub.offerSubcategory.offers||[];
+
+    // Each offer is an array of markets for one game
+    for(var oi=0;oi<offers.length;oi++){
+      var gameOffers=offers[oi];
+      if(!Array.isArray(gameOffers)||!gameOffers.length)continue;
+
+      // Find spread market for this game
+      var spreadMkt=null, mlMkt=null;
+      for(var mi=0;mi<gameOffers.length;mi++){
+        var mkt=gameOffers[mi];
+        var lbl=(mkt.label||'').toLowerCase();
+        if(lbl.indexOf('run line')!==-1||lbl.indexOf('puck line')!==-1||lbl.indexOf('spread')!==-1||lbl==='against the spread')spreadMkt=mkt;
+        if(lbl==='moneyline'||lbl==='money line'||lbl==='run line ml')mlMkt=mkt;
+      }
+      // Fallback: use first two markets
+      if(!spreadMkt&&!mlMkt){spreadMkt=gameOffers[0];mlMkt=gameOffers[1];}
+      if(!spreadMkt)spreadMkt=gameOffers[0];
+
+      // Check if this game matches our ESPN game by team name
+      var outcomes=spreadMkt&&spreadMkt.outcomes?spreadMkt.outcomes:[];
+      if(outcomes.length<2)continue;
+
+      var dkTeam0=(outcomes[0].participant||outcomes[0].label||'');
+      var dkTeam1=(outcomes[1].participant||outcomes[1].label||'');
+
+      var homeMatch=(teamMatch(espnGame.home_team,dkTeam0)||teamMatch(espnGame.home_team,dkTeam1));
+      var awayMatch=(teamMatch(espnGame.away_team,dkTeam0)||teamMatch(espnGame.away_team,dkTeam1));
+      if(!homeMatch||!awayMatch)continue;
+
+      // Found the game — extract home team spread
+      var homeOutcome=null,awayOutcome=null;
+      if(teamMatch(espnGame.home_team,dkTeam0)){homeOutcome=outcomes[0];awayOutcome=outcomes[1];}
+      else{homeOutcome=outcomes[1];awayOutcome=outcomes[0];}
+
+      var homeSpread=homeOutcome.line!==undefined?homeOutcome.line:null;
+      var homeML=null,awayML=null;
+
+      if(mlMkt&&mlMkt.outcomes&&mlMkt.outcomes.length>=2){
+        var mlOut0=mlMkt.outcomes[0],mlOut1=mlMkt.outcomes[1];
+        var mlTeam0=mlOut0.participant||mlOut0.label||'';
+        if(teamMatch(espnGame.home_team,mlTeam0)){
+          homeML=mlOut0.oddsAmerican!==undefined?parseInt(mlOut0.oddsAmerican):null;
+          awayML=mlOut1.oddsAmerican!==undefined?parseInt(mlOut1.oddsAmerican):null;
+        }else{
+          homeML=mlOut1.oddsAmerican!==undefined?parseInt(mlOut1.oddsAmerican):null;
+          awayML=mlOut0.oddsAmerican!==undefined?parseInt(mlOut0.oddsAmerican):null;
+        }
+      }
+
+      if(homeSpread===null)continue;
+      return{
+        spread:roundHalf(homeSpread),
+        mlHome:homeML,
+        mlAway:awayML,
+        providerName:'DraftKings'
+      };
+    }
+  }catch(e){addLog('DK parse error: '+e.message,'fail');}
   return null;
 }
 
 async function fetchCurrentLine(ev){
-  // Strategy 1: hit the /odds endpoint directly (what ESPN website uses)
-  // This returns current lines for all providers in one call
-  var oddsUrl='https://sports.core.api.espn.com/v2/sports/'+ev.espnPath+'/events/'+ev.espn_id+'/competitions/'+ev.espn_id+'/odds';
-  try{
-    var resp=await fetch(oddsUrl);
-    if(resp.ok){
-      var data=await resp.json();
-      var items=data.items||[];
-      for(var i=0;i<items.length;i++){
-        var item=items[i];
-        // Each item is a provider's odds — try to extract spread
-        var spread=extractSpread(item);
-        if(spread===null)continue;
-        var openSpread=extractOpenSpread(item);
-        return{
-          spread:roundHalf(spread),
-          openSpread:openSpread!==null?roundHalf(openSpread):null,
-          mlHome:extractHomeML(item),
-          mlAway:extractAwayML(item),
-          providerId:'espn-odds',
-          providerName:item.provider&&item.provider.name?item.provider.name:'ESPN',
-          entryCount:1
-        };
-      }
-    }
-  }catch(e){}
-
-  // Strategy 2: try movement history endpoint per provider
-  for(var pi=0;pi<PROVIDERS.length;pi++){
-    var pid=PROVIDERS[pi];
-    var url='https://sports.core.api.espn.com/v2/sports/'+ev.espnPath+'/events/'+ev.espn_id+'/competitions/'+ev.espn_id+'/odds/'+pid+'/history/0/movement?limit=100';
-    try{
-      var resp2=await fetch(url);
-      if(!resp2.ok)continue;
-      var data2=await resp2.json();
-      if(!data2.items||!data2.items.length)continue;
-      var newest=data2.items[0];
-      var spread2=extractSpread(newest);
-      if(spread2===null)continue;
-      return{
-        spread:roundHalf(spread2),
-        openSpread:data2.items.length>1?roundHalf(extractSpread(data2.items[data2.items.length-1])):null,
-        mlHome:extractHomeML(newest),
-        mlAway:extractAwayML(newest),
-        providerId:pid,
-        providerName:{1004:'Consensus',38:'Caesars',1003:'Numberfire',1002:'TeamRankings'}[pid]||('Provider '+pid),
-        entryCount:data2.items.length
-      };
-    }catch(e){continue;}
-  }
-  return null;
+  var dkData=await fetchDKSport(ev.sportKey);
+  var result=parseDKGame(dkData,ev);
+  return result;
 }
 
 // ─── RLM ANALYSIS ────────────────────────────────────────────────────────────
 function analyzeRLM(ev,current,threshold){
-  if(!current)return{strength:'watch',reason:'No ESPN line data available',sharp:null,diff:0,baseSpread:null,curSpread:null,isBaseline:false};
+  if(!current)return{strength:'watch',reason:'No DraftKings line data — lines may not be posted yet',sharp:null,diff:0,baseSpread:null,curSpread:null,isBaseline:false};
   var base=baseline[ev.espn_id];
   var isNewBaseline=!base;
   // If no baseline yet, this IS the baseline — no movement to report
@@ -572,7 +614,7 @@ function renderNoDataCard(ev,idx){
   return '<div class="game-card rlm-watch" style="animation-delay:'+(idx*0.04)+'s;opacity:0.5;">'+
     '<div class="card-header"><span class="sport-badge">'+sportLabel(ev.sportKey)+'</span><span class="game-time">'+fmtTime(ev.commence_time)+'</span><span class="rlm-badge watch">&#x26A0; No Data</span></div>'+
     '<div class="card-body"><div class="matchup"><div class="team-row"><span class="team-name" style="color:var(--muted)">'+ev.away_team+'</span></div><div class="vs-divider">@ VS</div><div class="team-row"><span class="team-name" style="color:var(--muted)">'+ev.home_team+'</span></div></div>'+
-    '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;flex:1;">ESPN line data not available &mdash; lines may not be posted yet.</div></div></div>';
+    '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;flex:1;">DraftKings line not available yet &mdash; lines typically post by 10-11am.</div></div></div>';
 }
 
 // ─── PUSHOVER ────────────────────────────────────────────────────────────────
@@ -609,6 +651,7 @@ async function runScan(isAuto){
   if(watchlist.size===0){setStatus('No games selected. Use Step 2 first.','error');return;}
   var watchlistEvents=allFetchedGames.filter(function(ev){return watchlist.has(ev.espn_id);});
   if(!watchlistEvents.length){setStatus('Watchlist games not found. Reload games.','error');return;}
+  dkCache={}; // clear DK cache so each scan cycle fetches fresh data
   var isFirstScan=!baselineLocked;
   setStatus((isAuto?'[Auto] ':'')+(isFirstScan?'Locking morning baseline for ':'Scanning ')+watchlistEvents.length+' game(s)...','loading');
   if(!isAuto){document.getElementById('results').innerHTML='';document.getElementById('summaryBar').style.display='none';}
