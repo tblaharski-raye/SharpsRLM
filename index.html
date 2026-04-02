@@ -379,6 +379,13 @@ async function oddsApiFetch(url){
   return resp.json();
 }
 
+// Returns YYYY-MM-DD for the day after the given date string
+function nextDayNoon(dateStr){
+  var d=new Date(dateStr+'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate()+1);
+  return d.toISOString().split('T')[0];
+}
+
 // STEP 1: Load games — single call per sport, returns events + odds together
 // markets=spreads,h2h gives us spread and moneyline in one credit-efficient call
 async function loadGames(){
@@ -400,7 +407,7 @@ async function loadGames(){
     try{
       // Fetch events list (0 credits) to get IDs
       var evUrl='https://api.the-odds-api.com/v4/sports/'+sport+'/events?apiKey='+apiKey+
-                '&commenceTimeFrom='+date+'T00:00:00Z&commenceTimeTo='+date+'T23:59:59Z';
+                '&commenceTimeFrom='+date+'T12:00:00Z&commenceTimeTo='+nextDayNoon(date)+'T06:00:00Z';
       var events=await oddsApiFetch(evUrl);
       if(!Array.isArray(events)||!events.length)continue;
 
