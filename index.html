@@ -405,31 +405,15 @@ async function loadGames(){
   for(var si=0;si<sports.length;si++){
     var sport=sports[si];
     try{
-      // Fetch events list (0 credits) to get IDs
-      var evUrl='https://api.the-odds-api.com/v4/sports/'+sport+'/events?apiKey='+apiKey+
-                '&commenceTimeFrom='+date+'T12:00:00Z&commenceTimeTo='+nextDayNoon(date)+'T06:00:00Z';
-      var events=await oddsApiFetch(evUrl);
-      if(!Array.isArray(events)||!events.length)continue;
-
-      // Fetch odds for all events in chunks (spreads + h2h = 2 markets = 2 credits per event chunk)
-      var chunkSize=10;
-      for(var i=0;i<events.length;i+=chunkSize){
-        var chunk=events.slice(i,i+chunkSize);
-        var ids=chunk.map(function(e){return e.id;}).join(',');
-        var oddsUrl='https://api.the-odds-api.com/v4/sports/'+sport+'/odds/?apiKey='+apiKey+
-                    '&regions=us,eu&markets=spreads,h2h&oddsFormat=american&eventIds='+ids;
-        try{
-          var oddsData=await oddsApiFetch(oddsUrl);
-          oddsData.forEach(function(g){
-            g.sportKey=sport;
-            allEvents.push(g);
-          });
-        }catch(e){errors.push(sportLabel(sport)+' odds: '+e.message);}
-        if(i+chunkSize<events.length)await new Promise(function(r){setTimeout(r,300);});
-      }
-    }catch(e){errors.push(sportLabel(sport)+': '+e.message);}
+      setStatus("Loading "+sportLabel(sport)+"...","loading");
+      var oddsUrl="https://api.the-odds-api.com/v4/sports/"+sport+"/odds/?apiKey="+apiKey+
+                  "&regions=us&markets=spreads,h2h&oddsFormat=american"+
+                  "&commenceTimeFrom="+date+"T12:00:00Z&commenceTimeTo="+nextDayNoon(date)+"T06:00:00Z";
+      var oddsData=await oddsApiFetch(oddsUrl);
+      oddsData.forEach(function(g){g.sportKey=sport;allEvents.push(g);});
+    }catch(e){errors.push(sportLabel(sport)+": "+e.message);}
+    if(si<sports.length-1)await new Promise(function(r){setTimeout(r,1000);});
   }
-
   btn.disabled=false;btn.textContent='Load Games';
 
   if(!allEvents.length){
