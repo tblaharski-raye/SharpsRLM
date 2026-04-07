@@ -265,6 +265,8 @@ footer{margin-top:32px;padding:20px 0;border-top:1px solid var(--border);font-fa
   <div class="sep"></div>
   <div class="sum-item"><div class="sum-val y" id="sumModerate">0</div><div class="sum-lbl">Moderate RLMs</div></div>
   <div class="sep"></div>
+  <div class="sum-item"><div class="sum-val" style="color:#ff6b35;" id="sumConfirmed">0</div><div class="sum-lbl">Confirmed RLMs</div></div>
+  <div class="sep"></div>
   <div class="sum-item"><div class="sum-val ev" id="sumEV">0</div><div class="sum-lbl">+EV Spots</div></div>
   <div class="sep"></div>
   <div class="sum-item"><div class="sum-val b" id="sumTotal">0</div><div class="sum-lbl">Games Watching</div></div>
@@ -309,6 +311,13 @@ var baselineLocked=false;
 var baselineDate='';
 var STORAGE_KEY='rlmdetector_v6';
 var BASELINE_KEY='rlmbaseline_v6';
+
+var AN_WORKER='https://rough-mountain-6096.tblaharski.workers.dev';
+var AN_SPORTS={
+  americanfootball_nfl:'NFL',basketball_nba:'NBA',baseball_mlb:'MLB',
+  icehockey_nhl:'NHL',americanfootball_ncaaf:'NCAAF',basketball_ncaab:'NCAAB'
+};
+var betPctCache={}; // sport -> {ts, games[]}
 
 var SPORT_LABELS={
   americanfootball_nfl:'NFL',basketball_nba:'NBA',baseball_mlb:'MLB',
@@ -500,7 +509,76 @@ function getMLForTeam(game,bookKeys,teamName){
   return null;
 }
 
-// ─── +EV MATH ────────────────────────────────────────────────────────────────
+// ─── ACTION NETWORK BET % ─────────────────────────────────────────────────────
+async function fetchBetPct(sportKey){
+  var anSport=AN_SPORTS[sportKey];
+  if(!anSport)return null;
+  var cached=betPctCache[sportKey];
+  if(cached&&Date.now()-cached.ts<600000)return cached.games;
+  try{
+    var date=document.getElementById('scanDate').value.replace(/-/g,'');
+    var url=AN_WORKER+'/?sport='+anSport+'&date='+date;
+    var resp=await fetch(url);
+    if(!resp.ok)return null;
+    var data=await resp.json();
+    var games=data.games||[];
+    betPctCache[sportKey]={ts:Date.now(),games:games};
+    return games;
+  }catch(e){addLog('AN bet% fetch error ('+sportKey+'): '+e.message,'fail');return null;}
+}
+
+function matchANGame(anGames,homeTeam,awayTeam){
+  if(!anGames||!anGames.length)return null;
+  for(var i=0;i<anGames.length;i++){
+    var g=anGames[i];
+    var teams=g.teams||[];
+    var names=teams.map(function(t){return(t.full_name||t.display_name||'').toLowerCase();});
+    var hLast=homeTeam.split(' ').pop().toLowerCase();
+    var aLast=awayTeam.split(' ').pop().toLowerCase();
+    var homeHit=names.some(function(n){return n.indexOf(hLast)!==-1;});
+    var awayHit=names.some(function(n){return n.indexOf(aLast)!==-1;});
+    if(homeHit&&awayHit)return g;
+  }
+  return null;
+}
+
+function extractBetPct(anGame,teamName){
+  if(!anGame)return null;
+  var teams=anGame.teams||[];
+  var tLast=teamName.split(' ').pop().toLowerCase();
+  for(var i=0;i<teams.length;i++){
+    var t=teams[i];
+    var name=(t.full_name||t.display_name||'').toLowerCase();
+    if(name.indexOf(tLast)!==-1){
+      // Look through markets for spread bet_pct and money_pct
+      var markets=anGame.markets||[];
+      for(var m=0;m<markets.length;m++){
+        var mkt=markets[m];
+        if(mkt.key==='spreads'||mkt.key==='spread'){
+          var outcomes=mkt.outcomes||mkt.books&&mkt.books[0]&&mkt.books[0].outcomes||[];
+          for(var o=0;o<outcomes.length;o++){
+            var out=outcomes[o];
+            var oName=(out.name||out.participant||'').toLowerCase();
+            if(oName.indexOf(tLast)!==-1){
+              return{
+                betPct:out.bet_pct||out.bets_pct||null,
+                moneyPct:out.money_pct||null
+              };
+            }
+          }
+        }
+      }
+      // Fallback: check top-level team fields
+      return{
+        betPct:t.bet_pct||t.bets_pct||null,
+        moneyPct:t.money_pct||null
+      };
+    }
+  }
+  return null;
+}
+
+
 function americanToImplied(odds){
   if(odds===null||isNaN(odds))return null;
   return odds>0?100/(odds+100):Math.abs(odds)/(Math.abs(odds)+100);
@@ -573,17 +651,19 @@ function getCurrentSpread(game){
 }
 
 // ─── RLM ANALYSIS ────────────────────────────────────────────────────────────
-function analyzeGame(game,threshold){
+function analyzeGame(game,threshold,anGames){
   if(!game.bookmakers||!game.bookmakers.length)return null;
-
   var current=getCurrentSpread(game);
   if(!current)return null;
+
+  var anGame=matchANGame(anGames,game.home_team,game.away_team);
+  var homeBetPct=extractBetPct(anGame,game.home_team);
+  var awayBetPct=extractBetPct(anGame,game.away_team);
 
   var base=baseline[game.id];
   var isBaseline=!base;
 
   if(isBaseline){
-    // First scan — this IS the baseline
     return{
       id:game.id,homeTeam:game.home_team,awayTeam:game.away_team,
       commenceTime:game.commence_time,sport:game.sportKey,
@@ -591,6 +671,7 @@ function analyzeGame(game,threshold){
       diff:0,strength:'watch',sharp:null,
       source:current.source,isPinnacle:current.isPinnacle,
       isBaseline:true,evData:{hasEV:false,evBets:[]},
+      homeBetPct:homeBetPct,awayBetPct:awayBetPct,isConfirmedRLM:false,
       reason:'Baseline set at '+fmtSpread(current.spread)+' ('+current.source+')'
     };
   }
@@ -604,7 +685,21 @@ function analyzeGame(game,threshold){
   if(absDiff>=1.0)strength='strong';
   else if(absDiff>=threshold)strength='moderate';
 
-  // Additional signal: compare Pinnacle vs soft books right now
+  // True RLM: sharp side getting <45% bets but line moved their way
+  var isConfirmedRLM=false,rlmNote='';
+  if(sharp&&absDiff>=threshold){
+    var sharpBetObj=sharp===game.home_team?homeBetPct:awayBetPct;
+    var publicBetObj=sharp===game.home_team?awayBetPct:homeBetPct;
+    if(sharpBetObj&&sharpBetObj.betPct!==null&&publicBetObj&&publicBetObj.betPct!==null){
+      var sharpBets=parseFloat(sharpBetObj.betPct);
+      var publicBets=parseFloat(publicBetObj.betPct);
+      if(!isNaN(sharpBets)&&!isNaN(publicBets)&&sharpBets<45&&publicBets>55){
+        isConfirmedRLM=true;
+        rlmNote=' · ✓ CONFIRMED RLM: '+sharp.split(' ').pop()+' '+sharpBets+'% bets, line moved their way';
+      }
+    }
+  }
+
   var sharpHome=getSpreadForTeam(game,SHARP_BOOKS,game.home_team);
   var softHome=avgSpreadForTeam(game,SOFT_BOOKS,game.home_team);
   var pinVsSoftGap=null,pinVsSoftSignal='';
@@ -616,9 +711,8 @@ function analyzeGame(game,threshold){
   }
 
   var evData=analyzeEV(game);
-
-  var reason=current.source+' · Baseline '+fmtSpread(base.spread)+' \u2192 Current '+fmtSpread(current.spread)+
-    (absDiff>=0.5?' ('+(diff>0?'+':'')+diff.toFixed(1)+'pt)':' · No significant move')+pinVsSoftSignal;
+  var reason=current.source+' · Baseline '+fmtSpread(base.spread)+' → Current '+fmtSpread(current.spread)+
+    (absDiff>=0.5?' ('+(diff>0?'+':'')+diff.toFixed(1)+'pt)':' · No significant move')+pinVsSoftSignal+rlmNote;
 
   return{
     id:game.id,homeTeam:game.home_team,awayTeam:game.away_team,
@@ -627,7 +721,8 @@ function analyzeGame(game,threshold){
     diff:diff,strength:strength,sharp:sharp,
     source:current.source,isPinnacle:current.isPinnacle,
     pinVsSoftGap:pinVsSoftGap,
-    isBaseline:false,evData:evData,reason:reason
+    isBaseline:false,evData:evData,
+    homeBetPct:homeBetPct,awayBetPct:awayBetPct,isConfirmedRLM:isConfirmedRLM,reason:reason
   };
 }
 
@@ -635,16 +730,31 @@ function analyzeGame(game,threshold){
 function renderCard(g,idx,isNew){
   var isSH=g.sharp===g.homeTeam,isSA=g.sharp===g.awayTeam;
   var hasEV=g.evData&&g.evData.hasEV;
+  var hasConfirmedRLM=g.isConfirmedRLM;
   var badge=g.strength==='strong'?'&#x1F525; Strong RLM':g.strength==='moderate'?'&#x26A1; Moderate RLM':'&mdash; No RLM';
   var newBadge=isNew?'<span class="new-badge">NEW</span>':'';
   var blBadge=g.isBaseline?'<span class="baseline-badge">BASELINE</span>':'';
   var evBadge=hasEV?'<span class="ev-badge">+EV</span>':'';
+  var rlmBadge=hasConfirmedRLM?'<span class="new-badge" style="background:#ff6b35;">✓ RLM</span>':'';
   var diffClass=g.diff<0?'mv-pos':g.diff>0?'mv-neg':'mv-neu';
   var diffVal=g.diff!==0?(g.diff>0?'+':'')+g.diff.toFixed(1)+'pt':'&#x00B10;0';
   var sharpVal=g.sharp?g.sharp.split(' ').pop().toUpperCase():'&mdash;';
   var sharpColor=g.sharp?'var(--accent)':'var(--muted)';
   var pinColor=g.isPinnacle?'var(--accent2)':'var(--muted)';
-  var cardClass='game-card rlm-'+g.strength+(hasEV?' has-ev':'')+(isNew?' newly-flagged':'');
+  var hasConfirmedRLM=g.isConfirmedRLM;
+  var cardClass='game-card rlm-'+g.strength+(hasEV?' has-ev':'')+(hasConfirmedRLM?' has-ev':'')+' '+(isNew?' newly-flagged':'');
+  var rlmBadge=hasConfirmedRLM?'<span class="new-badge" style="background:#ff6b35;">✓ RLM</span>':'';
+
+  // Bet % metric box
+  var homePct=g.homeBetPct&&g.homeBetPct.betPct!==null?parseFloat(g.homeBetPct.betPct):null;
+  var awayPct=g.awayBetPct&&g.awayBetPct.betPct!==null?parseFloat(g.awayBetPct.betPct):null;
+  var betPctMetric=homePct!==null&&awayPct!==null?
+    '<div class="metric-box" style="min-width:110px;'+(hasConfirmedRLM?'border-color:#ff6b35;background:rgba(255,107,53,.06);':'')+'">'+
+    '<div class="metric-label" style="'+(hasConfirmedRLM?'color:#ff6b35;':'')+'">% Bets</div>'+
+    '<div style="font-family:var(--mono);font-size:12px;margin-top:4px;line-height:1.9;">'+
+    '<span style="color:var(--muted);">'+g.awayTeam.split(' ').pop()+':</span> <strong>'+awayPct+'%</strong><br>'+
+    '<span style="color:var(--muted);">'+g.homeTeam.split(' ').pop()+':</span> <strong>'+homePct+'%</strong>'+
+    '</div></div>':'';
 
   var signal=(!g.isBaseline&&g.strength!=='watch')?
     '<div class="signal-row"><span style="font-size:14px">&#x1F4C8;</span>'+
@@ -665,7 +775,7 @@ function renderCard(g,idx,isNew){
     '<div style="font-family:var(--mono);font-size:9px;color:var(--ev);opacity:.7;margin-top:2px;">'+fmtBookName(bestEV.book)+' '+bestEV.team.split(' ').pop()+'</div>'+
     '</div>':'';
 
-  // EV detail row showing all +EV bets
+  // EV detail row
   var evRow='';
   if(hasEV&&g.evData.evBets.length>0){
     var chips=g.evData.evBets.slice(0,5).map(function(bet){
@@ -677,16 +787,16 @@ function renderCard(g,idx,isNew){
 
   return '<div class="'+cardClass+'" style="animation-delay:'+(idx*0.04)+'s">'+
     '<div class="card-header">'+
-    '<span class="sport-badge">'+sportLabel(g.sport)+'</span>'+newBadge+blBadge+evBadge+
+    '<span class="sport-badge">'+sportLabel(g.sport)+'</span>'+newBadge+blBadge+evBadge+rlmBadge+
     '<span class="game-time">'+fmtTime(g.commenceTime)+'</span>'+
     '<span class="rlm-badge '+g.strength+'">'+badge+'</span>'+
     '</div>'+
     '<div class="card-body">'+
     '<div class="matchup">'+
-    '<div class="team-row"><span class="team-name'+(isSA?' sharp-side':'')+'">'+g.awayTeam+'</span>'+
+    '<div class="team-row"><span class="team-name'+(isSA?' sharp-side':'')+'" >'+g.awayTeam+'</span>'+
     '<span class="spread">'+fmtSpread(g.curSpread!==null?-g.curSpread:null)+'</span></div>'+
     '<div class="vs-divider">@ &nbsp;VS</div>'+
-    '<div class="team-row"><span class="team-name'+(isSH?' sharp-side':'')+'">'+g.homeTeam+'</span>'+
+    '<div class="team-row"><span class="team-name'+(isSH?' sharp-side':'')+'" >'+g.homeTeam+'</span>'+
     '<span class="spread">'+fmtSpread(g.curSpread)+'</span></div>'+
     '</div>'+
     '<div class="metrics">'+
@@ -695,6 +805,7 @@ function renderCard(g,idx,isNew){
     '<div class="metric-box"><div class="metric-label">Move</div><div class="metric-value '+diffClass+'">'+diffVal+'</div></div>'+
     '<div class="metric-box"><div class="metric-label">Sharp Side</div><div class="metric-value" style="font-size:14px;color:'+sharpColor+'">'+sharpVal+'</div></div>'+
     (g.pinVsSoftGap!==null?'<div class="metric-box"><div class="metric-label">Pin vs Soft</div><div class="metric-value '+(g.pinVsSoftGap<0?'mv-pos':g.pinVsSoftGap>0?'mv-neg':'mv-neu')+'">'+(g.pinVsSoftGap>0?'+':'')+g.pinVsSoftGap.toFixed(1)+'</div></div>':'')+
+    betPctMetric+
     evMetric+
     '</div></div>'+
     signal+baseNote+evRow+'</div>';
@@ -751,6 +862,7 @@ async function runScan(isAuto){
 
   var freshOddsMap={};
   var fetchErrors=[];
+  var anGamesBySport={};
 
   for(var sk in bySport){
     var games=bySport[sk];
@@ -762,6 +874,11 @@ async function runScan(isAuto){
       var data=await oddsApiFetch(url);
       data.forEach(function(g){freshOddsMap[g.id]=g;});
     }catch(e){fetchErrors.push(sportLabel(sk)+': '+e.message);}
+    // Fetch AN bet % in parallel
+    try{
+      var anGames=await fetchBetPct(sk);
+      if(anGames)anGamesBySport[sk]=anGames;
+    }catch(e){}
   }
 
   var results=[];
@@ -770,8 +887,9 @@ async function runScan(isAuto){
   watchlistGames.forEach(function(g){
     var fresh=freshOddsMap[g.id];
     if(fresh){fresh.sportKey=g.sportKey;}
-    var gameData=fresh||g; // fall back to loaded data if fetch failed
-    var analysis=analyzeGame(gameData,threshold);
+    var gameData=fresh||g;
+    var anGames=anGamesBySport[g.sportKey]||[];
+    var analysis=analyzeGame(gameData,threshold,anGames);
     if(!analysis)return;
 
     // Lock baseline on first scan
@@ -829,8 +947,10 @@ async function runScan(isAuto){
   var strong=results.filter(function(x){return x.strength==='strong';}).length;
   var moderate=results.filter(function(x){return x.strength==='moderate';}).length;
   var evCount=results.filter(function(x){return x.evData&&x.evData.hasEV;}).length;
+  var confirmedRLM=results.filter(function(x){return x.isConfirmedRLM;}).length;
   document.getElementById('sumStrong').textContent=strong;
   document.getElementById('sumModerate').textContent=moderate;
+  document.getElementById('sumConfirmed').textContent=confirmedRLM;
   document.getElementById('sumEV').textContent=evCount;
   document.getElementById('sumTotal').textContent=watchlistGames.length;
   document.getElementById('summaryBar').style.display='flex';
